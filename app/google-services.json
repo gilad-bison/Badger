@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "379627332320",
+    "firebase_url": "https://badger-b12a5.firebaseio.com",
+    "project_id": "badger-b12a5",
+    "storage_bucket": "badger-b12a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379627332320:android:8ec41a802c42a70a",
+        "android_client_info": {
+          "package_name": "com.example.badger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379627332320-h3vinpmmo6cshknib1o76ds8lvpr1dma.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAotVEfZljt6D6iaGJIHDIH1lMjEG4j-7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379627332320-h3vinpmmo6cshknib1o76ds8lvpr1dma.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
