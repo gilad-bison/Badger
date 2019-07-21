@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Badger</string>
+    <string name="chip_text">s,d,g,a</string>
 </resources>
