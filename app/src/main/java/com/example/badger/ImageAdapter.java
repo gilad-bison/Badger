@@ -14,7 +14,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
-    private ArrayList<Image> mDataset;
+    private ArrayList<Post> mDataset;
     private HomePageActivity mActivity;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -30,7 +30,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
     }
 
-    public ImageAdapter(ArrayList<Image> myDataset, HomePageActivity activity) {
+    public ImageAdapter(ArrayList<Post> myDataset, HomePageActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
     }
@@ -50,11 +50,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        final Image image = (Image) mDataset.get(position);
-        if (image.user != null) {
-            holder.mTextView.setText(image.user.displayName);
+        final Post post = (Post) mDataset.get(position);
+        if (post.user != null) {
+            holder.mTextView.setText(post.user.displayName);
         }
-        Picasso.get().load(image.downloadUrl).into(holder.mImageView);
+        Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -63,8 +63,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         return mDataset.size();
     }
 
-    public void addImage(Image image) {
-        mDataset.add(0, image);
+    public void addImage(Post post) {
+        mDataset.add(0, post);
         notifyDataSetChanged();
     }
 }

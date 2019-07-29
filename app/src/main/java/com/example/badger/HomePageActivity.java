@@ -44,7 +44,7 @@ public class HomePageActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     ImageAdapter mAdapter;
-    ArrayList<Image> images = new ArrayList<>();
+    ArrayList<Post> posts = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,24 +61,24 @@ public class HomePageActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new ImageAdapter(images, this);
+        mAdapter = new ImageAdapter(posts, this);
         recyclerView.setAdapter(mAdapter);
 
-        // Get the latest 100 images
-        Query imagesQuery = database.child("images").orderByKey().limitToFirst(100);
-        imagesQuery.addChildEventListener(new ChildEventListener() {
+        // Get the latest 100 posts
+        Query postsQuery = database.child("posts").orderByKey().limitToFirst(100);
+        postsQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
                 // A new image has been added, add it to the displayed list
-                final Image image = dataSnapshot.getValue(Image.class);
+                final Post post = dataSnapshot.getValue(Post.class);
 
                 // get the image user
-                database.child("users/" + image.userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         User user = dataSnapshot.getValue(User.class);
-                        image.user = user;
+                        post.user = user;
                         mAdapter.notifyDataSetChanged();
                     }
 
@@ -88,7 +88,7 @@ public class HomePageActivity extends AppCompatActivity {
                     }
                 });
 
-                mAdapter.addImage(image);
+                mAdapter.addImage(post);
             }
 
             @Override

@@ -95,7 +95,8 @@ public class CreatePostActivity extends AppCompatActivity {
                 fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
-                        Uri downloadUrl = uri;
+                        String downloadUrl = uri.toString();
+                        postToUpload.imageDownloadUrl = downloadUrl;
                         Toast.makeText(CreatePostActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
                         // save image to database
                         database.child("posts").child(postToUpload.key).setValue(postToUpload);
