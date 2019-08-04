@@ -12,12 +12,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.sax.StartElementListener;
 import android.view.View;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -27,13 +23,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class HomePageActivity extends AppCompatActivity {
 
@@ -43,7 +34,7 @@ public class HomePageActivity extends AppCompatActivity {
     DatabaseReference database;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
-    ImageAdapter mAdapter;
+    PostAdapter mAdapter;
     ArrayList<Post> posts = new ArrayList<>();
 
     @Override
@@ -61,7 +52,7 @@ public class HomePageActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new ImageAdapter(posts, this);
+        mAdapter = new PostAdapter(posts, this);
         recyclerView.setAdapter(mAdapter);
 
         // Get the latest 100 posts
@@ -142,38 +133,6 @@ public class HomePageActivity extends AppCompatActivity {
             Intent intent = new Intent(this, CreatePostActivity.class);
             intent.putExtra("imageUri", uri.toString());
             startActivity(intent);
-
-//            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-//            StorageReference imagesRef = storageRef.child("images");
-//            StorageReference userRef = imagesRef.child(fbUser.getUid());
-//            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//            String filename = fbUser.getUid() + "_" + timeStamp;
-//            final StorageReference fileRef = userRef.child(filename);
-//
-//            UploadTask uploadTask = fileRef.putFile(uri);
-//            uploadTask.addOnFailureListener(new OnFailureListener() {
-//                @Override
-//                public void onFailure(@NonNull Exception exception) {
-//                    // Handle unsuccessful uploads
-//                    Toast.makeText(HomePageActivity.this, "Upload failed!\n" + exception.getMessage(), Toast.LENGTH_LONG).show();
-//                }
-//            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                @Override
-//                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                        @Override
-//                        public void onSuccess(Uri uri) {
-//                            Uri downloadUrl = uri;
-//                            Toast.makeText(HomePageActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
-//                            // save image to database
-//                            String key = database.child("images").push().getKey();
-//                            Image image = new Image(key, fbUser.getUid(), downloadUrl.toString());
-//                            database.child("images").child(key).setValue(image);
-//                        }
-//                    });
-//
-//                }
-//            });
         }
     }
 }

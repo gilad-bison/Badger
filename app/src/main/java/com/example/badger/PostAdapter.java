@@ -6,7 +6,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.util.TypedValue;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,7 +15,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
+public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private ArrayList<Post> mDataset;
     private HomePageActivity mActivity;
 
@@ -37,15 +36,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
     }
 
-    public ImageAdapter(ArrayList<Post> myDataset, HomePageActivity activity) {
+    public PostAdapter(ArrayList<Post> myDataset, HomePageActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ImageAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                      int viewType) {
+    public PostAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+                                                     int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.image_view, parent, false);
