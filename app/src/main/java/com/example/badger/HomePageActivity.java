@@ -13,6 +13,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,6 +36,7 @@ public class HomePageActivity extends AppCompatActivity {
     DatabaseReference database;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
+    ProgressBar mProgressBar;
     PostAdapter mAdapter;
     ArrayList<Post> posts = new ArrayList<>();
 
@@ -54,6 +57,9 @@ public class HomePageActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new PostAdapter(posts, this);
         recyclerView.setAdapter(mAdapter);
+        mProgressBar = findViewById(R.id.progress_bar);
+        recyclerView.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
 
         // Get the latest 100 posts
         Query postsQuery = database.child("posts").orderByKey().limitToFirst(100);
@@ -102,6 +108,11 @@ public class HomePageActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public void onAllImagesLoaded() {
+        recyclerView.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.GONE);
     }
 
     public void uploadEvent(View view) {

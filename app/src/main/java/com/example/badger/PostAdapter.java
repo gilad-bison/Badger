@@ -18,9 +18,10 @@ import java.util.ArrayList;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private ArrayList<Post> mDataset;
     private HomePageActivity mActivity;
+    private int mFinishedLoadingImages;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView mTextView;
+        public TextView mAuthorTextView;
         public TextView mPostDescriptionTextView;
         public ImageView mImageView;
         public Button mLikeButton;
@@ -28,7 +29,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
         public ViewHolder(View v) {
             super(v);
-            mTextView = v.findViewById(R.id.textView2);
+            mAuthorTextView = v.findViewById(R.id.postAuthorTextView);
             mImageView = v.findViewById(R.id.imageView);
             mLikeButton = v.findViewById(R.id.likeButton);
             mPostDescriptionTextView = v.findViewById(R.id.postDescriptionTextView);
@@ -39,6 +40,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public PostAdapter(ArrayList<Post> myDataset, HomePageActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
+        mFinishedLoadingImages = 0;
     }
 
     // Create new views (invoked by the layout manager)
@@ -58,7 +60,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, final int position) {
         final Post post = (Post) mDataset.get(position);
         if (post.user != null) {
-            holder.mTextView.setText(post.user.displayName);
+            holder.mAuthorTextView.setText("By " + post.user.displayName);
         }
         holder.mPostDescriptionTextView.setText(post.description);
         holder.mBadgesChipGroup.removeAllViews();
@@ -70,7 +72,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             holder.mBadgesChipGroup.addView(c);
         }
 
-        Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView);
+        Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView, new com.squareup.picasso.Callback() {
+            @Override
+            public void onSuccess() {
+                mFinishedLoadingImages++;
+                if (mFinishedLoadingImages == mDataset.size()) {
+                    mActivity.onAllImagesLoaded();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                int x = 2;
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
