@@ -64,13 +64,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
         holder.mPostDescriptionTextView.setText(post.description);
         holder.mBadgesChipGroup.removeAllViews();
-        for (String badge : post.badges) {
-            Chip c = new Chip(holder.mBadgesChipGroup.getContext());
-            c.setText(badge);
-            c.setClickable(false);
-            c.setCheckable(false);
-            holder.mBadgesChipGroup.addView(c);
+        if (post.badges != null) {
+            for (String badge : post.badges) {
+                Chip c = new Chip(holder.mBadgesChipGroup.getContext());
+                c.setText(badge);
+                c.setClickable(false);
+                c.setCheckable(false);
+                holder.mBadgesChipGroup.addView(c);
+            }
         }
+
 
         Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView, new com.squareup.picasso.Callback() {
             @Override

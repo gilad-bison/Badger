@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,6 +37,11 @@ import java.util.List;
 public class CreatePostActivity extends AppCompatActivity {
 
     private Uri imageURI;
+    private ProgressBar mProgress;
+    private EditText mDescriptionEditText;
+    private ImageView mPreviewImageView;
+    private ChipGroup mBadgesChipGroup;
+    private Button mPostButton;
     DatabaseReference database;
     FirebaseUser fbUser;
 
@@ -41,10 +49,14 @@ public class CreatePostActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_post);
+        mProgress = findViewById(R.id.progress_bar);
         Intent callerIntent = getIntent();
         this.imageURI = Uri.parse(callerIntent.getStringExtra("imageUri"));
-        ImageView previewImageView = findViewById(R.id.previewImage);
-        previewImageView.setImageURI(this.imageURI);
+        mPreviewImageView = findViewById(R.id.previewImage);
+        mPreviewImageView.setImageURI(this.imageURI);
+        mDescriptionEditText = findViewById(R.id.editText);
+        mPostButton = findViewById(R.id.postButton);
+        mBadgesChipGroup = findViewById(R.id.filter_chip_group);
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fbUser == null) {
             finish();
@@ -55,13 +67,11 @@ public class CreatePostActivity extends AppCompatActivity {
 
 
     private Post getPostFromUI() {
-        EditText descriptionEditText = findViewById(R.id.editText);
-        String description = descriptionEditText.getText().toString();
-        ArrayList<String> badges = new ArrayList<String>();
 
-        ChipGroup badgesChipGroup = findViewById(R.id.filter_chip_group);
-        for (int i = 0; i < badgesChipGroup.getChildCount(); i++) {
-            Chip currentChip  = (Chip)badgesChipGroup.getChildAt(i);
+        String description = mDescriptionEditText.getText().toString();
+        ArrayList<String> badges = new ArrayList<String>();
+        for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
+            Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
             if (currentChip.isChecked()) {
                 badges.add(currentChip.getText().toString());
             }
@@ -71,10 +81,18 @@ public class CreatePostActivity extends AppCompatActivity {
         return new Post(key, fbUser.getUid(), this.imageURI.toString(), description, badges);
     }
 
+    private void disableView() {
+        mBadgesChipGroup.setEnabled(false);
+        mDescriptionEditText.setEnabled(false);
+        mPreviewImageView.setEnabled(false);
+        mPostButton.setEnabled(false);
+    }
+
     public void sendPost(View view) {
-          final Post postToUpload = this.getPostFromUI();
-//        Uri uri = data.getData();
-//
+        disableView();
+        mProgress.setVisibility(View.VISIBLE);
+
+        final Post postToUpload = this.getPostFromUI();
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference imagesRef = storageRef.child("images");
         StorageReference userRef = imagesRef.child(fbUser.getUid());
@@ -86,8 +104,9 @@ public class CreatePostActivity extends AppCompatActivity {
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
                 Toast.makeText(CreatePostActivity.this, "Upload failed!\n" + exception.getMessage(), Toast.LENGTH_LONG).show();
+                mProgress.setVisibility(View.GONE);
+                onBackPressed();
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -100,6 +119,8 @@ public class CreatePostActivity extends AppCompatActivity {
                         Toast.makeText(CreatePostActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
                         // save image to database
                         database.child("posts").child(postToUpload.key).setValue(postToUpload);
+                        mProgress.setVisibility(View.GONE);
+                        onBackPressed();
                     }
                 });
 
