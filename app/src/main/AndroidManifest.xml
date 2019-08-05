@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".CreatePostActivity"></activity>
-        <activity android:name=".HomePageActivity" />
+        <activity android:name=".FeedActivity" />
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">

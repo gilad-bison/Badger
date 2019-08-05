@@ -13,7 +13,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,7 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class HomePageActivity extends AppCompatActivity {
+public class FeedActivity extends AppCompatActivity {
 
     static final int RC_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     static final int RC_IMAGE_GALLERY = 2;
@@ -43,7 +42,7 @@ public class HomePageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home_page);
+        setContentView(R.layout.activity_feed);
 
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fbUser == null) {

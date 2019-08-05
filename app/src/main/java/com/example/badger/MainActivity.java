@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -37,13 +36,13 @@ public class MainActivity extends AppCompatActivity {
             com.example.badger.User user = new com.example.badger.User(fbUser.getUid(), fbUser.getDisplayName(), token);
             database.child("users").child(user.uid).setValue(user);
 
-            Intent intent = new Intent(this, HomePageActivity.class);
+            Intent intent = new Intent(this, FeedActivity.class);
             startActivity(intent);
         }
     }
 
 //    public void Login(View view) {
-//        Intent intent = new Intent(this, HomePageActivity.class);
+//        Intent intent = new Intent(this, FeedActivity.class);
 //        EditText editText = (EditText) findViewById(R.id.editText);
 //        String message = editText.getText().toString();
 //        intent.putExtra("gilad", message);
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 User user = new User(fbUser.getUid(), fbUser.getDisplayName(), token);
                 database.child("users").child(user.uid).setValue(user);
 
-                Intent intent = new Intent(this, HomePageActivity.class);
+                Intent intent = new Intent(this, FeedActivity.class);
                 startActivity(intent);
             } else {
                 // Sign in failed, check response for error code

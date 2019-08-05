@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private ArrayList<Post> mDataset;
-    private HomePageActivity mActivity;
+    private FeedActivity mActivity;
     private int mFinishedLoadingImages;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -37,7 +37,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    public PostAdapter(ArrayList<Post> myDataset, HomePageActivity activity) {
+    public PostAdapter(ArrayList<Post> myDataset, FeedActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
         mFinishedLoadingImages = 0;
