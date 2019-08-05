@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private ArrayList<Post> mDataset;
     private FeedActivity mActivity;
-    private int mFinishedLoadingImages;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mAuthorTextView;
@@ -26,6 +26,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         public ImageView mImageView;
         public Button mLikeButton;
         public ChipGroup mBadgesChipGroup;
+        public ProgressBar mProgressBar;
 
         public ViewHolder(View v) {
             super(v);
@@ -34,13 +35,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             mLikeButton = v.findViewById(R.id.likeButton);
             mPostDescriptionTextView = v.findViewById(R.id.postDescriptionTextView);
             mBadgesChipGroup = v.findViewById(R.id.badgesChipGroup);
+            mProgressBar = v.findViewById(R.id.progress_bar);
         }
     }
 
     public PostAdapter(ArrayList<Post> myDataset, FeedActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
-        mFinishedLoadingImages = 0;
     }
 
     // Create new views (invoked by the layout manager)
@@ -57,7 +58,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Post post = (Post) mDataset.get(position);
         if (post.user != null) {
             holder.mAuthorTextView.setText("By " + post.user.displayName);
@@ -78,15 +79,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView, new com.squareup.picasso.Callback() {
             @Override
             public void onSuccess() {
-                mFinishedLoadingImages++;
-                if (mFinishedLoadingImages == mDataset.size()) {
-                    mActivity.onAllImagesLoaded();
-                }
+                holder.mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onError(Exception e) {
-                int x = 2;
             }
         });
     }
@@ -99,6 +96,5 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
     public void addImage(Post post) {
         mDataset.add(0, post);
-        notifyDataSetChanged();
     }
 }

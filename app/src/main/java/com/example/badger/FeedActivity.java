@@ -34,10 +34,10 @@ public class FeedActivity extends AppCompatActivity {
     FirebaseUser fbUser;
     DatabaseReference database;
     RecyclerView recyclerView;
-    RecyclerView.LayoutManager mLayoutManager;
+    LinearLayoutManager mLayoutManager;
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
-    ArrayList<Post> posts = new ArrayList<>();
+    ArrayList<Post> mPosts = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +50,12 @@ public class FeedActivity extends AppCompatActivity {
         }
 
         database = FirebaseDatabase.getInstance().getReference();
-        // Setup the RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new PostAdapter(posts, this);
+        mAdapter = new PostAdapter(mPosts, this);
         recyclerView.setAdapter(mAdapter);
         mProgressBar = findViewById(R.id.progress_bar);
-        recyclerView.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
 
         // Get the latest 100 posts
@@ -65,7 +63,7 @@ public class FeedActivity extends AppCompatActivity {
         postsQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
+                mProgressBar.setVisibility(View.GONE);
                 // A new image has been added, add it to the displayed list
                 final Post post = dataSnapshot.getValue(Post.class);
 
@@ -107,11 +105,6 @@ public class FeedActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-    public void onAllImagesLoaded() {
-        recyclerView.setVisibility(View.VISIBLE);
-        mProgressBar.setVisibility(View.GONE);
     }
 
     public void uploadEvent(View view) {
