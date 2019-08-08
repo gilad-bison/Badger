@@ -195,5 +195,9 @@ public class FeedActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    public void DeletePost(View view) {
+
+    }
 }
 

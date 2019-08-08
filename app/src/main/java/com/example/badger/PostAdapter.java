@@ -97,4 +97,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public void addImage(Post post) {
         mDataset.add(0, post);
     }
+
+    public void DeletePost(View view) {
+
+    }
 }
