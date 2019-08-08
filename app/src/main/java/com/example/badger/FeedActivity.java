@@ -14,9 +14,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -44,6 +48,8 @@ public class FeedActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent callerIntent = getIntent();
+        Boolean isPersonal = callerIntent.getBooleanExtra("isPersonal", false);
         setContentView(R.layout.activity_feed);
 
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -60,8 +66,16 @@ public class FeedActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
 
+        Query postsQuery;
         // Get the latest 100 posts
-        Query postsQuery = database.child("posts").orderByKey().limitToFirst(100);
+        if (isPersonal) {
+            String uid = fbUser.getUid();
+            postsQuery = database.child("posts").orderByChild("userId").equalTo(uid).limitToFirst(100);
+        }
+        else {
+            postsQuery = database.child("posts").orderByKey().limitToFirst(100);
+        }
+
         postsQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -147,4 +161,39 @@ public class FeedActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_menu, menu);
         return true;
     }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.logout:
+                signOut();
+                return true;
+            case R.id.profile:
+                goToProfile();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void goToProfile() {
+        Intent personalIntent = new Intent(FeedActivity.this, FeedActivity.class);
+        personalIntent.putExtra("isPersonal", true);
+        startActivity(personalIntent);
+    }
+
+    private void signOut() {
+        AuthUI.getInstance()
+                .signOut(this)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // user is now signed out
+                        startActivity(new Intent(FeedActivity.this, MainActivity.class));
+                        finish();
+                    }
+                });
+    }
 }
+
