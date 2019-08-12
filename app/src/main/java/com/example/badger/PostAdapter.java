@@ -126,6 +126,24 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
 
+        String likeVerb = "Like";
+        if (post.hasLiked) {
+            likeVerb = "Unlike";
+        }
+
+        holder.mLikeButton.setText(likeVerb + " (" + post.likes + ")");
+        if(post.hasLiked) {
+            holder.mLikeButton.setBackgroundColor(mActivity.getResources().getColor(R.color.colorAccent));
+        } else {
+            holder.mLikeButton.setBackgroundColor(mActivity.getResources().getColor(R.color.colorPrimary));
+        }
+        holder.mLikeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mActivity.setLiked(post);
+            }
+        });
+
         holder.mOpenMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,7 +158,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         return mDataset.size();
     }
 
-    public void addImage(Post post) {
+    public void addPost(Post post) {
         mDataset.add(0, post);
     }
 

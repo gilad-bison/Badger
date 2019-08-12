@@ -70,7 +70,6 @@ public class FeedActivity extends AppCompatActivity {
         mProgressBar.setVisibility(View.VISIBLE);
 
         Query postsQuery;
-        // Get the latest 100 posts
         if (isPersonal) {
             String uid = fbUser.getUid();
             postsQuery = database.child("posts").orderByChild("userId").equalTo(uid).limitToFirst(100);
@@ -83,10 +82,9 @@ public class FeedActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 mProgressBar.setVisibility(View.GONE);
-                // A new image has been added, add it to the displayed list
                 final Post post = dataSnapshot.getValue(Post.class);
 
-                // get the image user
+
                 database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -101,7 +99,47 @@ public class FeedActivity extends AppCompatActivity {
                     }
                 });
 
-                mAdapter.addImage(post);
+                Query likesQuery = database.child("likes").orderByChild("postId").equalTo(post.key);
+                likesQuery.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Like like = dataSnapshot.getValue(Like.class);
+                        post.addLike();
+                        if(like.userId.equals(fbUser.getUid())) {
+                            post.hasLiked = true;
+                            post.userLike = dataSnapshot.getKey();
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+                        Like like = dataSnapshot.getValue(Like.class);
+                        post.removeLike();
+                        if(like.userId.equals(fbUser.getUid())) {
+                            post.hasLiked = false;
+                            post.userLike = null;
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+                mAdapter.addPost(post);
             }
 
             @Override
@@ -134,6 +172,8 @@ public class FeedActivity extends AppCompatActivity {
 
             }
         });
+
+
     }
 
     public void uploadEvent(View view) {
@@ -265,6 +305,23 @@ public class FeedActivity extends AppCompatActivity {
         intent.putExtra("editMode", true);
         intent.putExtra("postKey", post.key);
         startActivityForResult(intent, RC_EDIT_POST);
+    }
+
+    public void setLiked(Post post) {
+        if(!post.hasLiked) {
+            // add new Like
+            post.hasLiked = true;
+            Like like = new Like(post.key, fbUser.getUid());
+            String key = database.child("likes").push().getKey();
+            database.child("likes").child(key).setValue(like);
+            post.userLike = key;
+        } else {
+            // remove Like
+            post.hasLiked = false;
+            if (post.userLike != null) {
+                database.child("likes").child(post.userLike).removeValue();
+            }
+        }
     }
 }
 
