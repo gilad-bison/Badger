@@ -4,6 +4,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 @IgnoreExtraProperties
 public class Post {
@@ -45,4 +46,5 @@ public class Post {
     public void removeLike() {
         this.likes--;
     }
+
 }

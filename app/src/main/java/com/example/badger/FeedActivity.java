@@ -32,6 +32,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 public class FeedActivity extends AppCompatActivity {
 
@@ -61,7 +62,7 @@ public class FeedActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new PostAdapter(mPosts, this);
+        mAdapter = new PostAdapter(mPosts, this, isPersonal);
         recyclerView.setAdapter(mAdapter);
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
@@ -103,21 +104,31 @@ public class FeedActivity extends AppCompatActivity {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
+        postsQuery.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    mProgressBar.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         });
@@ -173,6 +184,9 @@ public class FeedActivity extends AppCompatActivity {
             case R.id.profile:
                 goToProfile();
                 return true;
+            case R.id.home:
+                goToHomePage();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -181,6 +195,11 @@ public class FeedActivity extends AppCompatActivity {
     private void goToProfile() {
         Intent personalIntent = new Intent(FeedActivity.this, FeedActivity.class);
         personalIntent.putExtra("isPersonal", true);
+        startActivity(personalIntent);
+    }
+
+    private void goToHomePage() {
+        Intent personalIntent = new Intent(FeedActivity.this, FeedActivity.class);
         startActivity(personalIntent);
     }
 
@@ -196,8 +215,13 @@ public class FeedActivity extends AppCompatActivity {
                 });
     }
 
-    public void DeletePost(View view) {
-
+    public void DeletePost(Post post) {
+        database.child("posts").child(post.key).removeValue();
+        for (Post currPost: mPosts) {
+            if (currPost.key == post.key) {
+                mPosts.remove(currPost);
+            }
+        }
     }
 }
 

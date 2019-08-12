@@ -8,10 +8,12 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -19,6 +21,9 @@ import java.util.ArrayList;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private ArrayList<Post> mDataset;
     private FeedActivity mActivity;
+    private Boolean mIsPersonal;
+    private String mUid;
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mAuthorTextView;
@@ -27,6 +32,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         public Button mLikeButton;
         public ChipGroup mBadgesChipGroup;
         public ProgressBar mProgressBar;
+        public AppCompatImageButton mDeleteButton;
 
         public ViewHolder(View v) {
             super(v);
@@ -36,12 +42,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             mPostDescriptionTextView = v.findViewById(R.id.postDescriptionTextView);
             mBadgesChipGroup = v.findViewById(R.id.badgesChipGroup);
             mProgressBar = v.findViewById(R.id.progress_bar);
+            mDeleteButton = v.findViewById(R.id.deletePost);
+
         }
     }
 
-    public PostAdapter(ArrayList<Post> myDataset, FeedActivity activity) {
+    public PostAdapter(ArrayList<Post> myDataset, FeedActivity activity, Boolean isPersonal) {
         mDataset = myDataset;
         mActivity = activity;
+        mIsPersonal = isPersonal;
+        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
     // Create new views (invoked by the layout manager)
@@ -60,6 +70,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Post post = (Post) mDataset.get(position);
+        if (!mUid.equals(post.userId)) {
+            holder.mDeleteButton.setVisibility(View.GONE);
+        }
+
         if (post.user != null) {
             holder.mAuthorTextView.setText("By " + post.user.displayName);
         }
@@ -84,6 +98,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
             @Override
             public void onError(Exception e) {
+            }
+        });
+
+        holder.mDeleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mActivity.DeletePost(post);
             }
         });
     }
