@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ public class CreatePostActivity extends AppCompatActivity {
     private ImageView mPreviewImageView;
     private ChipGroup mBadgesChipGroup;
     private Button mPostButton;
+    private String mPostKey;
+    private boolean mIsEditMode;
     DatabaseReference database;
     FirebaseUser fbUser;
 
@@ -51,12 +54,39 @@ public class CreatePostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_post);
         mProgress = findViewById(R.id.progress_bar);
         Intent callerIntent = getIntent();
+        mPostKey = callerIntent.getStringExtra("postKey");
+        mIsEditMode = callerIntent.getBooleanExtra("editMode", false);
+
         this.imageURI = Uri.parse(callerIntent.getStringExtra("imageUri"));
         mPreviewImageView = findViewById(R.id.previewImage);
-        mPreviewImageView.setImageURI(this.imageURI);
+        if (mIsEditMode) {
+            Picasso.get().load(this.imageURI.toString()).into(mPreviewImageView);
+        }
+        else {
+            mPreviewImageView.setImageURI(this.imageURI);
+        }
+
+
         mDescriptionEditText = findViewById(R.id.editText);
+        String currentDescription = callerIntent.getStringExtra("description");
+        if (currentDescription != null) {
+            mDescriptionEditText.setText(currentDescription);
+        }
+
         mPostButton = findViewById(R.id.postButton);
         mBadgesChipGroup = findViewById(R.id.filter_chip_group);
+        ArrayList<String> currentBadges = callerIntent.getStringArrayListExtra("badges");
+        if (currentBadges != null && currentBadges.size() > 0) {
+            for (String currBadge : currentBadges) {
+                for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
+                    Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
+                    if (currentChip.getText().toString().equals(currBadge)) {
+                        currentChip.setChecked(true);
+                    }
+                }
+            }
+        }
+
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fbUser == null) {
             finish();
@@ -66,8 +96,15 @@ public class CreatePostActivity extends AppCompatActivity {
     }
 
 
-    private Post getPostFromUI() {
+    private String getPostKey() {
+        if (mIsEditMode && mPostKey != null) {
+            return mPostKey;
+        }
 
+        return database.child("posts").push().getKey();
+    }
+
+    private Post getPostFromUI() {
         String description = mDescriptionEditText.getText().toString();
         ArrayList<String> badges = new ArrayList<String>();
         for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
@@ -77,7 +114,7 @@ public class CreatePostActivity extends AppCompatActivity {
             }
         }
 
-        String key = database.child("posts").push().getKey();
+        String key = getPostKey();
         return new Post(key, fbUser.getUid(), this.imageURI.toString(), description, badges);
     }
 
@@ -88,11 +125,30 @@ public class CreatePostActivity extends AppCompatActivity {
         mPostButton.setEnabled(false);
     }
 
+    private void createPostObjectAndUpload(String downloadUrl) {
+        Post postToUpload = this.getPostFromUI();
+        postToUpload.imageDownloadUrl = downloadUrl;
+        Toast.makeText(CreatePostActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
+        // save image to database
+        database.child("posts").child(postToUpload.key).setValue(postToUpload);
+        mProgress.setVisibility(View.GONE);
+        Intent intent = new Intent();
+        intent.putExtra("description", postToUpload.description);
+        intent.putExtra("badges", postToUpload.badges);
+        intent.putExtra("postKey", postToUpload.key);
+        setResult(RESULT_OK,intent);
+        finish();
+        onBackPressed();
+    }
+
     public void sendPost(View view) {
         disableView();
         mProgress.setVisibility(View.VISIBLE);
+        if (mIsEditMode) {
+            createPostObjectAndUpload(this.imageURI.toString());
+            return;
+        }
 
-        final Post postToUpload = this.getPostFromUI();
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference imagesRef = storageRef.child("images");
         StorageReference userRef = imagesRef.child(fbUser.getUid());
@@ -115,15 +171,9 @@ public class CreatePostActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Uri uri) {
                         String downloadUrl = uri.toString();
-                        postToUpload.imageDownloadUrl = downloadUrl;
-                        Toast.makeText(CreatePostActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
-                        // save image to database
-                        database.child("posts").child(postToUpload.key).setValue(postToUpload);
-                        mProgress.setVisibility(View.GONE);
-                        onBackPressed();
+                        createPostObjectAndUpload(downloadUrl);
                     }
                 });
-
             }
         });
     }

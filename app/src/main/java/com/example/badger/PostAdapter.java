@@ -1,16 +1,20 @@
 package com.example.badger;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.firebase.ui.auth.data.model.Resource;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,7 +36,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         public Button mLikeButton;
         public ChipGroup mBadgesChipGroup;
         public ProgressBar mProgressBar;
-        public AppCompatImageButton mDeleteButton;
+        public AppCompatImageButton mOpenMenuButton;
 
         public ViewHolder(View v) {
             super(v);
@@ -42,7 +46,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             mPostDescriptionTextView = v.findViewById(R.id.postDescriptionTextView);
             mBadgesChipGroup = v.findViewById(R.id.badgesChipGroup);
             mProgressBar = v.findViewById(R.id.progress_bar);
-            mDeleteButton = v.findViewById(R.id.deletePost);
+            mOpenMenuButton = v.findViewById(R.id.openMenuImageButton);
 
         }
     }
@@ -66,12 +70,33 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         return vh;
     }
 
+    private void openMenu(ViewHolder holder, final Post post) {
+        PopupMenu popup = new PopupMenu(holder.mOpenMenuButton.getContext(), holder.mOpenMenuButton);
+        popup.getMenuInflater()
+                .inflate(R.menu.image_menu, popup.getMenu());
+        //registering popup with OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.delete_post:
+                        mActivity.DeletePost(post);
+                        return true;
+                    case R.id.edit_post:
+                        mActivity.EditPost(post);
+                        return true;
+                    default:
+                        return true;
+            }
+        }});
+        popup.show(); //showing popup menu
+    }
+
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Post post = (Post) mDataset.get(position);
         if (!mUid.equals(post.userId)) {
-            holder.mDeleteButton.setVisibility(View.GONE);
+            holder.mOpenMenuButton.setVisibility(View.GONE);
         }
 
         if (post.user != null) {
@@ -101,10 +126,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
 
-        holder.mDeleteButton.setOnClickListener(new View.OnClickListener() {
+        holder.mOpenMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mActivity.DeletePost(post);
+                openMenu(holder, post);
             }
         });
     }

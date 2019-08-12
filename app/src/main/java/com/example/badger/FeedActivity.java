@@ -38,6 +38,8 @@ public class FeedActivity extends AppCompatActivity {
 
     static final int RC_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     static final int RC_IMAGE_GALLERY = 2;
+    static final int RC_EDIT_POST = 3;
+
     FirebaseUser fbUser;
     DatabaseReference database;
     RecyclerView recyclerView;
@@ -164,6 +166,13 @@ public class FeedActivity extends AppCompatActivity {
             intent.putExtra("imageUri", uri.toString());
             startActivity(intent);
         }
+
+        if (requestCode == RC_EDIT_POST && resultCode == RESULT_OK) {
+            String description = data.getStringExtra("description");
+            ArrayList<String> badges = data.getStringArrayListExtra("badges");
+            String postKey = data.getStringExtra("postKey");
+            updatePost(postKey, description, badges);
+        }
     }
 
     @Override
@@ -220,8 +229,42 @@ public class FeedActivity extends AppCompatActivity {
         for (Post currPost: mPosts) {
             if (currPost.key == post.key) {
                 mPosts.remove(currPost);
+                break;
             }
         }
+
+        RefreshRecycler();
+    }
+
+    private void updatePost(String postKey, String description, ArrayList<String> badges) {
+        for (Post post : mPosts) {
+            if (post.key.equals(postKey)) {
+                post.description = description;
+                post.badges = badges;
+                break;
+            }
+        }
+
+        RefreshRecycler();
+    }
+
+    private void RefreshRecycler() {
+        recyclerView.setAdapter(null);
+        recyclerView.setLayoutManager(null);
+        recyclerView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.getRecycledViewPool().clear();
+        mAdapter.notifyDataSetChanged();
+    }
+
+    public void EditPost(Post post) {
+        Intent intent = new Intent(this, CreatePostActivity.class);
+        intent.putExtra("imageUri", post.imageDownloadUrl);
+        intent.putExtra("description", post.description);
+        intent.putExtra("badges", post.badges);
+        intent.putExtra("editMode", true);
+        intent.putExtra("postKey", post.key);
+        startActivityForResult(intent, RC_EDIT_POST);
     }
 }
 
