@@ -1,4 +1,4 @@
-package com.example.badger;
+package com.example.badger.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.example.badger.PostAdapter;
+import com.example.badger.R;
 import com.example.badger.models.Like;
 import com.example.badger.models.Post;
 import com.example.badger.viewModels.PostViewModel;
@@ -38,6 +40,7 @@ public class FeedActivity extends AppCompatActivity {
     static final int RC_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     static final int RC_IMAGE_GALLERY = 2;
     static final int RC_EDIT_POST = 3;
+    static final int RC_CREATE_POST = 4;
 
     FirebaseUser fbUser;
     DatabaseReference database;
@@ -45,12 +48,12 @@ public class FeedActivity extends AppCompatActivity {
     LinearLayoutManager mLayoutManager;
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
+    PostViewModel mPostViewModel;
     List<Post> mPosts = new ArrayList<>();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         Intent callerIntent = getIntent();
         Boolean isPersonal = callerIntent.getBooleanExtra("isPersonal", false);
@@ -65,19 +68,19 @@ public class FeedActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new PostAdapter(mPosts, this, isPersonal);
+        mAdapter = new PostAdapter(mPosts, this);
         recyclerView.setAdapter(mAdapter);
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
 
-        PostViewModel model = ViewModelProviders.of(this).get(PostViewModel.class);
+        mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
         if (isPersonal) {
-            model.getPersonalPosts(this, fbUser.getUid()).observe(this, posts -> {
+            mPostViewModel.getPersonalPosts(this, fbUser.getUid()).observe(this, posts -> {
                 handlePostsDBUpdate(posts);
             });
         }
         else {
-            model.getPosts(this).observe(this, posts -> {
+            mPostViewModel.getPosts(this).observe(this, posts -> {
                 handlePostsDBUpdate(posts);
             });
         }
@@ -120,7 +123,7 @@ public class FeedActivity extends AppCompatActivity {
 
             Intent intent = new Intent(this, CreatePostActivity.class);
             intent.putExtra("imageUri", uri.toString());
-            startActivity(intent);
+            startActivityForResult(intent, RC_CREATE_POST);
         }
 
         if (requestCode == RC_EDIT_POST && resultCode == RESULT_OK) {
@@ -128,6 +131,14 @@ public class FeedActivity extends AppCompatActivity {
             ArrayList<String> badges = data.getStringArrayListExtra("badges");
             String postKey = data.getStringExtra("postKey");
             updatePost(postKey, description, badges);
+        }
+
+        if (requestCode == RC_CREATE_POST && resultCode == RESULT_OK) {
+            String description = data.getStringExtra("description");
+            ArrayList<String> badges = data.getStringArrayListExtra("badges");
+            String postKey = data.getStringExtra("postKey");
+            String imageLocalUri = data.getStringExtra("imageLocalUri");
+            createPost(postKey, description, badges, imageLocalUri);
         }
     }
 
@@ -204,7 +215,19 @@ public class FeedActivity extends AppCompatActivity {
         RefreshRecycler();
     }
 
+    private void createPost(String postKey, String description, ArrayList<String> badges, String imageLocalUri) {
+        Post newPost = new Post(postKey, fbUser.getUid(), description, badges);
+        newPost.imageLocalUri = imageLocalUri;
+        newPost.user = mPostViewModel.getUserFromCache(fbUser.getUid());
+        mPosts.add(0, newPost);
+        //mAdapter.addPost(newPost);
+        mPostViewModel.addPost(newPost);
+
+        RefreshRecycler();
+    }
+
     private void RefreshRecycler() {
+        System.out.println("Refresh Recycler Called");
         recyclerView.setAdapter(null);
         recyclerView.setLayoutManager(null);
         recyclerView.setAdapter(mAdapter);
@@ -215,7 +238,7 @@ public class FeedActivity extends AppCompatActivity {
 
     public void EditPost(Post post) {
         Intent intent = new Intent(this, CreatePostActivity.class);
-        intent.putExtra("imageUri", post.imageDownloadUrl);
+        intent.putExtra("imageDownloadUrl", post.imageDownloadUrl);
         intent.putExtra("description", post.description);
         intent.putExtra("badges", post.badges);
         intent.putExtra("editMode", true);
@@ -224,20 +247,30 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void setLiked(Post post) {
+        System.out.println("Beginning of set liked");
+        System.out.println(post.likes);
         if(!post.hasLiked) {
             // add new Like
+            System.out.println("if");
             post.hasLiked = true;
+            post.upsertLike(new Like(post.key, fbUser.getUid()));
             Like like = new Like(post.key, fbUser.getUid());
             String key = database.child("likes").push().getKey();
             database.child("likes").child(key).setValue(like);
             post.userLike = key;
         } else {
             // remove Like
+            System.out.println("else");
+            post.removeLike(new Like(post.key, fbUser.getUid()));
             post.hasLiked = false;
             if (post.userLike != null) {
                 database.child("likes").child(post.userLike).removeValue();
             }
         }
+
+        System.out.println("Set Liked");
+        System.out.println(post.likes);
+        mAdapter.notifyDataSetChanged();
     }
 }
 

@@ -1,8 +1,9 @@
 package com.example.badger.viewModels;
 
 import android.app.Activity;
-import android.view.ActionMode;
+import android.net.Uri;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -11,9 +12,12 @@ import androidx.lifecycle.ViewModel;
 import androidx.room.Room;
 
 import com.example.badger.BadgerDatabase;
+import com.example.badger.activities.CreatePostActivity;
 import com.example.badger.models.Like;
 import com.example.badger.models.Post;
 import com.example.badger.models.User;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -23,8 +27,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PostViewModel extends ViewModel {
@@ -61,11 +70,32 @@ public class PostViewModel extends ViewModel {
         return postsLiveData;
     }
 
+    private void upsertPost(Post post) {
+        boolean found = false;
+        for (int i = 0; i < posts.size(); i++) {
+            Post currPost = posts.get(i);
+            if (currPost.key.equals(post.key)) {
+                posts.set(i, post);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            posts.add(0, post);
+        }
+
+        postsLiveData.setValue(posts);
+    }
+
+    public User getUserFromCache(String uid) {
+        return mBadgerDatabase.getUserDAO().getUserById(uid);
+    }
+
     private void loadPosts(Query postsQuery) {
         postsQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
                 final Post post = dataSnapshot.getValue(Post.class);
 
                 User cachedUser = mBadgerDatabase.getUserDAO().getUserById(post.userId);
@@ -94,14 +124,12 @@ public class PostViewModel extends ViewModel {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                         Like like = dataSnapshot.getValue(Like.class);
-                        post.addLike();
+                        post.upsertLike(like);
 
                         if(like.userId.equals(fbUser.getUid())) {
                             post.hasLiked = true;
                             post.userLike = dataSnapshot.getKey();
                         }
-
-                        postsLiveData.setValue(posts);
                     }
 
                     @Override
@@ -112,14 +140,11 @@ public class PostViewModel extends ViewModel {
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
                         Like like = dataSnapshot.getValue(Like.class);
-                        post.removeLike();
+                        post.removeLike(like);
                         if(like.userId.equals(fbUser.getUid())) {
                             post.hasLiked = false;
                             post.userLike = null;
                         }
-
-                        postsLiveData.setValue(posts);
-
                     }
 
                     @Override
@@ -133,8 +158,7 @@ public class PostViewModel extends ViewModel {
                     }
                 });
 
-                posts.add(0, post);
-                postsLiveData.setValue(posts);
+                upsertPost(post);
             }
 
             @Override
@@ -158,13 +182,44 @@ public class PostViewModel extends ViewModel {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    //mProgressBar.setVisibility(View.GONE);
+                    postsLiveData.setValue(posts);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
+            }
+        });
+    }
+
+    public void addPost (Post post) {
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference imagesRef = storageRef.child("images");
+        StorageReference userRef = imagesRef.child(fbUser.getUid());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String filename = fbUser.getUid() + "_" + timeStamp;
+        final StorageReference fileRef = userRef.child(filename);
+
+        UploadTask uploadTask = fileRef.putFile(Uri.parse(post.imageLocalUri));
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+//                Toast.makeText(CreatePostActivity.this, "Upload failed!\n" + exception.getMessage(), Toast.LENGTH_LONG).show();
+//                mProgress.setVisibility(View.GONE);
+//                onBackPressed();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String downloadUrl = uri.toString();
+                        post.imageDownloadUrl = downloadUrl;
+                        database.child("posts").child(post.key).setValue(post);
+                    }
+                });
             }
         });
     }

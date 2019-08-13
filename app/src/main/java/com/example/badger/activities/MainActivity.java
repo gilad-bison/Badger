@@ -1,12 +1,16 @@
-package com.example.badger;
+package com.example.badger.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.badger.BadgerDatabase;
+import com.example.badger.R;
+import com.example.badger.activities.FeedActivity;
 import com.example.badger.models.User;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
@@ -76,6 +80,11 @@ public class MainActivity extends AppCompatActivity {
                 // save the user info in the database to users/UID/
                 // we'll use the UID as part of the path
                 User user = new User(fbUser.getUid(), fbUser.getDisplayName(), token);
+                BadgerDatabase mBadgerDatabase = Room.databaseBuilder(this, BadgerDatabase.class, "mydb")
+                        .allowMainThreadQueries()
+                        .build();
+
+                mBadgerDatabase.getUserDAO().insert(user);
                 database.child("users").child(user.uid).setValue(user);
 
                 Intent intent = new Intent(this, FeedActivity.class);

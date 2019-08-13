@@ -4,6 +4,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @IgnoreExtraProperties
 public class Post {
@@ -15,10 +16,13 @@ public class Post {
 
     // these properties will not be saved to the database
     @Exclude
+    public String imageLocalUri;
+
+    @Exclude
     public User user;
 
     @Exclude
-    public int likes = 0;
+    public List<Like> likes = new ArrayList<>();
 
     @Exclude
     public boolean hasLiked = false;
@@ -38,12 +42,33 @@ public class Post {
         this.badges = badges;
     }
 
-    public void addLike() {
-        this.likes++;
+    public Post(String key, String userId, String description, ArrayList<String> badges) {
+        this.key = key;
+        this.userId = userId;
+        this.description = description;
+        this.badges = badges;
     }
 
-    public void removeLike() {
-        this.likes--;
+    public void upsertLike(Like like) {
+        for(int i = 0; i < likes.size(); i++) {
+            Like currLike = likes.get(i);
+            if (currLike.userId.equals(like.userId)) {
+                likes.set(i, like);
+                return;
+            }
+        }
+
+        this.likes.add(like);
+    }
+
+    public void removeLike(Like like) {
+        for(int i = 0; i < likes.size(); i++) {
+            Like currLike = likes.get(i);
+            if (currLike.userId.equals(like.userId)) {
+                likes.remove(i);
+                return;
+            }
+        }
     }
 
 }

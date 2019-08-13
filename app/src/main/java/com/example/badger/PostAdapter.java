@@ -1,5 +1,7 @@
 package com.example.badger;
 
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,10 +15,13 @@ import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.badger.activities.FeedActivity;
 import com.example.badger.models.Post;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -24,7 +29,6 @@ import java.util.List;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private List<Post> mDataset;
     private FeedActivity mActivity;
-    private Boolean mIsPersonal;
     private String mUid;
 
 
@@ -49,10 +53,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    public PostAdapter(List<Post> myDataset, FeedActivity activity, Boolean isPersonal) {
+    public PostAdapter(List<Post> myDataset, FeedActivity activity) {
         mDataset = myDataset;
         mActivity = activity;
-        mIsPersonal = isPersonal;
         mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
@@ -72,7 +75,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         PopupMenu popup = new PopupMenu(holder.mOpenMenuButton.getContext(), holder.mOpenMenuButton);
         popup.getMenuInflater()
                 .inflate(R.menu.image_menu, popup.getMenu());
-        //registering popup with OnMenuItemClickListener
+
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
@@ -89,10 +92,36 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         popup.show(); //showing popup menu
     }
 
+    private void loadDownloadImage(ViewHolder holder, Post post) {
+        Picasso.get().load(post.imageDownloadUrl).networkPolicy(NetworkPolicy.OFFLINE).into(holder.mImageView, new com.squareup.picasso.Callback() {
+            @Override
+            public void onSuccess() {
+                holder.mProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Picasso.get()
+                        .load(post.imageDownloadUrl)
+                        .into(holder.mImageView, new Callback() {
+                            @Override
+                            public void onSuccess() {
+                                holder.mProgressBar.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Log.v("Picasso","Could not fetch image");
+                            }
+                        });
+            }
+        });
+    }
+
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final Post post = (Post) mDataset.get(position);
+        final Post post = mDataset.get(position);
         if (!mUid.equals(post.userId)) {
             holder.mOpenMenuButton.setVisibility(View.GONE);
         }
@@ -100,6 +129,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         if (post.user != null) {
             holder.mAuthorTextView.setText("By " + post.user.displayName);
         }
+
         holder.mPostDescriptionTextView.setText(post.description);
         holder.mBadgesChipGroup.removeAllViews();
         if (post.badges != null) {
@@ -112,24 +142,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         }
 
-
-        Picasso.get().load(post.imageDownloadUrl).into(holder.mImageView, new com.squareup.picasso.Callback() {
-            @Override
-            public void onSuccess() {
-                holder.mProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onError(Exception e) {
-            }
-        });
+        if (post.imageLocalUri != null) {
+            holder.mImageView.setImageURI(Uri.parse(post.imageLocalUri));
+            holder.mProgressBar.setVisibility(View.GONE);
+        }
+        else {
+            loadDownloadImage(holder, post);
+        }
 
         String likeVerb = "Like";
         if (post.hasLiked) {
             likeVerb = "Unlike";
         }
 
-        holder.mLikeButton.setText(likeVerb + " (" + post.likes + ")");
+        holder.mLikeButton.setText(likeVerb + " (" + post.likes.size() + ")");
         if(post.hasLiked) {
             holder.mLikeButton.setBackgroundColor(mActivity.getResources().getColor(R.color.colorAccent));
         } else {
@@ -150,19 +176,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mDataset.size();
     }
 
-    public void addPost(Post post) {
-        mDataset.add(0, post);
-    }
+    public void addPost(Post post) { mDataset.add(0, post); }
 
     public void addPosts(List<Post> posts) { mDataset = posts; }
-
-    public void DeletePost(View view) {
-
-    }
 }

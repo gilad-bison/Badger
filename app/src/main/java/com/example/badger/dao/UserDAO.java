@@ -14,9 +14,9 @@ public interface UserDAO {
     @Update
     public void update(User... items);
     @Delete
-    public void delete(User item);
+    public void delete(User user);
     @Query("SELECT * FROM users")
-    public List<User> getPosts();
+    public List<User> getUsers();
     @Query("SELECT * FROM users WHERE uid = :uid")
     public User getUserById(String uid);
 }
