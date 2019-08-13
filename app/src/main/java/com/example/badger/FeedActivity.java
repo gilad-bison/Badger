@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.Manifest;
 import android.content.Intent;
@@ -49,9 +50,13 @@ public class FeedActivity extends AppCompatActivity {
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
     ArrayList<Post> mPosts = new ArrayList<>();
+    BadgerDatabase mBadgerDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mBadgerDatabase = Room.databaseBuilder(this, BadgerDatabase.class, "mydb")
+                .allowMainThreadQueries()
+                .build();
         super.onCreate(savedInstanceState);
         Intent callerIntent = getIntent();
         Boolean isPersonal = callerIntent.getBooleanExtra("isPersonal", false);
@@ -86,20 +91,27 @@ public class FeedActivity extends AppCompatActivity {
                 mProgressBar.setVisibility(View.GONE);
                 final Post post = dataSnapshot.getValue(Post.class);
 
+                User cachedUser = mBadgerDatabase.getUserDAO().getUserById(post.userId);
+                if (cachedUser != null) {
+                    post.user = cachedUser;
+                    mAdapter.notifyDataSetChanged();
+                }
+                else {
+                    database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
+                            post.user = user;
+                            mBadgerDatabase.getUserDAO().insert(user);
+                            mAdapter.notifyDataSetChanged();
+                        }
 
-                database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        post.user = user;
-                        mAdapter.notifyDataSetChanged();
-                    }
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+                        }
+                    });
+                }
 
                 Query likesQuery = database.child("likes").orderByChild("postId").equalTo(post.key);
                 likesQuery.addChildEventListener(new ChildEventListener() {
@@ -174,8 +186,6 @@ public class FeedActivity extends AppCompatActivity {
 
             }
         });
-
-
     }
 
     public void uploadEvent(View view) {
