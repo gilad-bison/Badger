@@ -19,10 +19,10 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
-    private ArrayList<Post> mDataset;
+    private List<Post> mDataset;
     private FeedActivity mActivity;
     private Boolean mIsPersonal;
     private String mUid;
@@ -46,11 +46,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             mBadgesChipGroup = v.findViewById(R.id.badgesChipGroup);
             mProgressBar = v.findViewById(R.id.progress_bar);
             mOpenMenuButton = v.findViewById(R.id.openMenuImageButton);
-
         }
     }
 
-    public PostAdapter(ArrayList<Post> myDataset, FeedActivity activity, Boolean isPersonal) {
+    public PostAdapter(List<Post> myDataset, FeedActivity activity, Boolean isPersonal) {
         mDataset = myDataset;
         mActivity = activity;
         mIsPersonal = isPersonal;
@@ -160,6 +159,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public void addPost(Post post) {
         mDataset.add(0, post);
     }
+
+    public void addPosts(List<Post> posts) { mDataset = posts; }
 
     public void DeletePost(View view) {
 

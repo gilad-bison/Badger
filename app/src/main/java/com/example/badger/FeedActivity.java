@@ -4,9 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.Manifest;
 import android.content.Intent;
@@ -21,21 +21,17 @@ import android.widget.ProgressBar;
 
 import com.example.badger.models.Like;
 import com.example.badger.models.Post;
-import com.example.badger.models.User;
+import com.example.badger.viewModels.PostViewModel;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FeedActivity extends AppCompatActivity {
 
@@ -49,14 +45,12 @@ public class FeedActivity extends AppCompatActivity {
     LinearLayoutManager mLayoutManager;
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
-    ArrayList<Post> mPosts = new ArrayList<>();
-    BadgerDatabase mBadgerDatabase;
+    List<Post> mPosts = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mBadgerDatabase = Room.databaseBuilder(this, BadgerDatabase.class, "mydb")
-                .allowMainThreadQueries()
-                .build();
+
         super.onCreate(savedInstanceState);
         Intent callerIntent = getIntent();
         Boolean isPersonal = callerIntent.getBooleanExtra("isPersonal", false);
@@ -76,135 +70,45 @@ public class FeedActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
 
-        Query postsQuery;
+        PostViewModel model = ViewModelProviders.of(this).get(PostViewModel.class);
         if (isPersonal) {
-            String uid = fbUser.getUid();
-            postsQuery = database.child("posts").orderByChild("userId").equalTo(uid).limitToFirst(100);
+            model.getPersonalPosts(this, fbUser.getUid()).observe(this, posts -> {
+                handlePostsDBUpdate(posts);
+            });
         }
         else {
-            postsQuery = database.child("posts").orderByKey().limitToFirst(100);
+            model.getPosts(this).observe(this, posts -> {
+                handlePostsDBUpdate(posts);
+            });
         }
+    }
 
-        postsQuery.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                mProgressBar.setVisibility(View.GONE);
-                final Post post = dataSnapshot.getValue(Post.class);
-
-                User cachedUser = mBadgerDatabase.getUserDAO().getUserById(post.userId);
-                if (cachedUser != null) {
-                    post.user = cachedUser;
-                    mAdapter.notifyDataSetChanged();
-                }
-                else {
-                    database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            User user = dataSnapshot.getValue(User.class);
-                            post.user = user;
-                            mBadgerDatabase.getUserDAO().insert(user);
-                            mAdapter.notifyDataSetChanged();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-
-                Query likesQuery = database.child("likes").orderByChild("postId").equalTo(post.key);
-                likesQuery.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Like like = dataSnapshot.getValue(Like.class);
-                        post.addLike();
-                        if(like.userId.equals(fbUser.getUid())) {
-                            post.hasLiked = true;
-                            post.userLike = dataSnapshot.getKey();
-                        }
-                        mAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-                        Like like = dataSnapshot.getValue(Like.class);
-                        post.removeLike();
-                        if(like.userId.equals(fbUser.getUid())) {
-                            post.hasLiked = false;
-                            post.userLike = null;
-                        }
-                        mAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-                mAdapter.addPost(post);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-
-        postsQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    mProgressBar.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+    private void handlePostsDBUpdate(List<Post> posts) {
+        mPosts = posts;
+        mAdapter.addPosts(mPosts);
+        mProgressBar.setVisibility(View.GONE);
+        RefreshRecycler();
     }
 
     public void uploadEvent(View view) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, RC_PERMISSION_READ_EXTERNAL_STORAGE);
         } else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            startActivityForResult(intent, RC_IMAGE_GALLERY);
+            startImageSelectionActivity();
         }
+    }
+
+    private void startImageSelectionActivity() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, RC_IMAGE_GALLERY);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == RC_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
-                startActivityForResult(intent, RC_IMAGE_GALLERY);
+                startImageSelectionActivity();
             }
         }
     }
