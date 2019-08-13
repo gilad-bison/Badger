@@ -35,8 +35,8 @@ public class CreatePostActivity extends AppCompatActivity {
     private Button mPostButton;
     private String mPostKey;
     private boolean mIsEditMode;
-    DatabaseReference database;
-    FirebaseUser fbUser;
+    private DatabaseReference mDatabaseReference;
+    private FirebaseUser mFirebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +71,12 @@ public class CreatePostActivity extends AppCompatActivity {
             populateBadges(currentBadges);
         }
 
-        fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (fbUser == null) {
+        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (mFirebaseUser == null) {
             finish();
         }
 
-        database = FirebaseDatabase.getInstance().getReference();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
     }
 
     private void populateBadges(ArrayList<String> currentBadges) {
@@ -95,7 +95,7 @@ public class CreatePostActivity extends AppCompatActivity {
             return mPostKey;
         }
 
-        return database.child("posts").push().getKey();
+        return mDatabaseReference.child("posts").push().getKey();
     }
 
     private Post getPostFromUI() {
@@ -109,7 +109,7 @@ public class CreatePostActivity extends AppCompatActivity {
         }
 
         String key = getPostKey();
-        Post postFromUI = new Post(key, fbUser.getUid(), description, badges);
+        Post postFromUI = new Post(key, mFirebaseUser.getUid(), description, badges);
 
         if (this.mImageLocalURI != null) {
             postFromUI.imageLocalUri = this.mImageLocalURI;
@@ -130,7 +130,6 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private void createPostObjectAndUpload() {
         Post postToUpload = this.getPostFromUI();
-        Toast.makeText(CreatePostActivity.this, "Upload finished!", Toast.LENGTH_SHORT).show();
         // save image to database
         mProgress.setVisibility(View.GONE);
         Intent intent = new Intent();

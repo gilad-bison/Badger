@@ -18,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.badger.PostAdapter;
 import com.example.badger.R;
@@ -42,14 +43,15 @@ public class FeedActivity extends AppCompatActivity {
     static final int RC_EDIT_POST = 3;
     static final int RC_CREATE_POST = 4;
 
-    FirebaseUser fbUser;
-    DatabaseReference database;
-    RecyclerView recyclerView;
+    FirebaseUser mFirebaseUser;
+    DatabaseReference mDatabaseReference;
+    RecyclerView mRecyclerView;
     LinearLayoutManager mLayoutManager;
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
     PostViewModel mPostViewModel;
     List<Post> mPosts = new ArrayList<>();
+    private TextView mHelloTextView;
 
 
     @Override
@@ -59,23 +61,25 @@ public class FeedActivity extends AppCompatActivity {
         Boolean isPersonal = callerIntent.getBooleanExtra("isPersonal", false);
         setContentView(R.layout.activity_feed);
 
-        fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (fbUser == null) {
+        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (mFirebaseUser == null) {
             finish();
         }
 
-        database = FirebaseDatabase.getInstance().getReference();
-        recyclerView = findViewById(R.id.recyclerView);
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mRecyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new PostAdapter(mPosts, this);
-        recyclerView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
+        mHelloTextView = findViewById(R.id.badgerFeedTextBox);
 
         mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
+
         if (isPersonal) {
-            mPostViewModel.getPersonalPosts(this, fbUser.getUid()).observe(this, posts -> {
+            mPostViewModel.getPersonalPosts(this, mFirebaseUser.getUid()).observe(this, posts -> {
                 handlePostsDBUpdate(posts);
             });
         }
@@ -84,13 +88,16 @@ public class FeedActivity extends AppCompatActivity {
                 handlePostsDBUpdate(posts);
             });
         }
+
+        String userDisplayName = mPostViewModel.getUserFromCache(mFirebaseUser.getUid()).displayName;
+        mHelloTextView.setText("Hi " + userDisplayName + "!");
     }
 
     private void handlePostsDBUpdate(List<Post> posts) {
         mPosts = posts;
         mAdapter.addPosts(mPosts);
         mProgressBar.setVisibility(View.GONE);
-        RefreshRecycler();
+        mAdapter.notifyDataSetChanged();
     }
 
     public void uploadEvent(View view) {
@@ -192,7 +199,7 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void DeletePost(Post post) {
-        database.child("posts").child(post.key).removeValue();
+        mDatabaseReference.child("posts").child(post.key).removeValue();
         for (Post currPost: mPosts) {
             if (currPost.key == post.key) {
                 mPosts.remove(currPost);
@@ -216,9 +223,9 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     private void createPost(String postKey, String description, ArrayList<String> badges, String imageLocalUri) {
-        Post newPost = new Post(postKey, fbUser.getUid(), description, badges);
+        Post newPost = new Post(postKey, mFirebaseUser.getUid(), description, badges);
         newPost.imageLocalUri = imageLocalUri;
-        newPost.user = mPostViewModel.getUserFromCache(fbUser.getUid());
+        newPost.user = mPostViewModel.getUserFromCache(mFirebaseUser.getUid());
         mPosts.add(0, newPost);
         //mAdapter.addPost(newPost);
         mPostViewModel.addPost(newPost);
@@ -228,11 +235,11 @@ public class FeedActivity extends AppCompatActivity {
 
     private void RefreshRecycler() {
         System.out.println("Refresh Recycler Called");
-        recyclerView.setAdapter(null);
-        recyclerView.setLayoutManager(null);
-        recyclerView.setAdapter(mAdapter);
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.getRecycledViewPool().clear();
+        mRecyclerView.setAdapter(null);
+        mRecyclerView.setLayoutManager(null);
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.getRecycledViewPool().clear();
         mAdapter.notifyDataSetChanged();
     }
 
@@ -247,29 +254,23 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void setLiked(Post post) {
-        System.out.println("Beginning of set liked");
-        System.out.println(post.likes);
         if(!post.hasLiked) {
             // add new Like
-            System.out.println("if");
             post.hasLiked = true;
-            post.upsertLike(new Like(post.key, fbUser.getUid()));
-            Like like = new Like(post.key, fbUser.getUid());
-            String key = database.child("likes").push().getKey();
-            database.child("likes").child(key).setValue(like);
+            post.upsertLike(new Like(post.key, mFirebaseUser.getUid()));
+            Like like = new Like(post.key, mFirebaseUser.getUid());
+            String key = mDatabaseReference.child("likes").push().getKey();
+            mDatabaseReference.child("likes").child(key).setValue(like);
             post.userLike = key;
         } else {
             // remove Like
-            System.out.println("else");
-            post.removeLike(new Like(post.key, fbUser.getUid()));
+            post.removeLike(new Like(post.key, mFirebaseUser.getUid()));
             post.hasLiked = false;
             if (post.userLike != null) {
-                database.child("likes").child(post.userLike).removeValue();
+                mDatabaseReference.child("likes").child(post.userLike).removeValue();
             }
         }
 
-        System.out.println("Set Liked");
-        System.out.println(post.likes);
         mAdapter.notifyDataSetChanged();
     }
 }

@@ -22,14 +22,14 @@ import com.google.firebase.iid.FirebaseInstanceId;
 
 public class MainActivity extends AppCompatActivity {
 
-    DatabaseReference database;
+    private DatabaseReference mDatabaseReference;
     private static final int RC_SIGN_IN = 123;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        database = FirebaseDatabase.getInstance().getReference();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
         if(fbUser != null) {
@@ -39,20 +39,12 @@ public class MainActivity extends AppCompatActivity {
             // save the user info in the database to users/UID/
             // we'll use the UID as part of the path
             User user = new User(fbUser.getUid(), fbUser.getDisplayName(), token);
-            database.child("users").child(user.uid).setValue(user);
+            mDatabaseReference.child("users").child(user.uid).setValue(user);
 
             Intent intent = new Intent(this, FeedActivity.class);
             startActivity(intent);
         }
     }
-
-//    public void Login(View view) {
-//        Intent intent = new Intent(this, FeedActivity.class);
-//        EditText editText = (EditText) findViewById(R.id.editText);
-//        String message = editText.getText().toString();
-//        intent.putExtra("gilad", message);
-//        startActivity(intent);
-//    }
 
     public void signIn(View view) {
         startActivityForResult(
@@ -85,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                         .build();
 
                 mBadgerDatabase.getUserDAO().insert(user);
-                database.child("users").child(user.uid).setValue(user);
+                mDatabaseReference.child("users").child(user.uid).setValue(user);
 
                 Intent intent = new Intent(this, FeedActivity.class);
                 startActivity(intent);

@@ -2,9 +2,6 @@ package com.example.badger.viewModels;
 
 import android.app.Activity;
 import android.net.Uri;
-import android.view.View;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,7 +9,6 @@ import androidx.lifecycle.ViewModel;
 import androidx.room.Room;
 
 import com.example.badger.BadgerDatabase;
-import com.example.badger.activities.CreatePostActivity;
 import com.example.badger.models.Like;
 import com.example.badger.models.Post;
 import com.example.badger.models.User;
@@ -37,17 +33,17 @@ import java.util.Date;
 import java.util.List;
 
 public class PostViewModel extends ViewModel {
-    DatabaseReference database;
-    private MutableLiveData<List<Post>> postsLiveData;
-    private List<Post> posts;
+    private DatabaseReference mDatabaseReference;
+    private MutableLiveData<List<Post>> mPostsLiveData;
+    private List<Post> mPosts;
     private BadgerDatabase mBadgerDatabase;
     private FirebaseUser fbUser;
 
     public PostViewModel() {
-        database = FirebaseDatabase.getInstance().getReference();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        postsLiveData = new MutableLiveData<>();
-        posts = new ArrayList<>();
+        mPostsLiveData = new MutableLiveData<>();
+        mPosts = new ArrayList<>();
     }
 
     public LiveData<List<Post>> getPosts(Activity activity) {
@@ -55,9 +51,9 @@ public class PostViewModel extends ViewModel {
                 .allowMainThreadQueries()
                 .build();
 
-        Query postsQuery = database.child("posts").orderByKey().limitToFirst(100);
+        Query postsQuery = mDatabaseReference.child("posts").orderByKey().limitToFirst(100);
         loadPosts(postsQuery);
-        return postsLiveData;
+        return mPostsLiveData;
     }
 
     public LiveData<List<Post>> getPersonalPosts(Activity activity, String uid) {
@@ -65,27 +61,27 @@ public class PostViewModel extends ViewModel {
                 .allowMainThreadQueries()
                 .build();
 
-        Query postsQuery = database.child("posts").orderByChild("userId").equalTo(uid).limitToFirst(100);
+        Query postsQuery = mDatabaseReference.child("posts").orderByChild("userId").equalTo(uid).limitToFirst(100);
         loadPosts(postsQuery);
-        return postsLiveData;
+        return mPostsLiveData;
     }
 
     private void upsertPost(Post post) {
         boolean found = false;
-        for (int i = 0; i < posts.size(); i++) {
-            Post currPost = posts.get(i);
+        for (int i = 0; i < mPosts.size(); i++) {
+            Post currPost = mPosts.get(i);
             if (currPost.key.equals(post.key)) {
-                posts.set(i, post);
+                mPosts.set(i, post);
                 found = true;
                 break;
             }
         }
 
         if (!found) {
-            posts.add(0, post);
+            mPosts.add(0, post);
         }
 
-        postsLiveData.setValue(posts);
+        mPostsLiveData.setValue(mPosts);
     }
 
     public User getUserFromCache(String uid) {
@@ -103,13 +99,13 @@ public class PostViewModel extends ViewModel {
                     post.user = cachedUser;
                 }
                 else {
-                    database.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    mDatabaseReference.child("users/" + post.userId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             User user = dataSnapshot.getValue(User.class);
                             post.user = user;
                             mBadgerDatabase.getUserDAO().insert(user);
-                            postsLiveData.setValue(posts);
+                            mPostsLiveData.setValue(mPosts);
                         }
 
                         @Override
@@ -119,7 +115,7 @@ public class PostViewModel extends ViewModel {
                     });
                 }
 
-                Query likesQuery = database.child("likes").orderByChild("postId").equalTo(post.key);
+                Query likesQuery = mDatabaseReference.child("likes").orderByChild("postId").equalTo(post.key);
                 likesQuery.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -130,6 +126,8 @@ public class PostViewModel extends ViewModel {
                             post.hasLiked = true;
                             post.userLike = dataSnapshot.getKey();
                         }
+
+                        mPostsLiveData.setValue(mPosts);
                     }
 
                     @Override
@@ -145,6 +143,8 @@ public class PostViewModel extends ViewModel {
                             post.hasLiked = false;
                             post.userLike = null;
                         }
+
+                        mPostsLiveData.setValue(mPosts);
                     }
 
                     @Override
@@ -182,7 +182,7 @@ public class PostViewModel extends ViewModel {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    postsLiveData.setValue(posts);
+                    mPostsLiveData.setValue(mPosts);
                 }
             }
 
@@ -205,9 +205,6 @@ public class PostViewModel extends ViewModel {
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-//                Toast.makeText(CreatePostActivity.this, "Upload failed!\n" + exception.getMessage(), Toast.LENGTH_LONG).show();
-//                mProgress.setVisibility(View.GONE);
-//                onBackPressed();
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -217,7 +214,7 @@ public class PostViewModel extends ViewModel {
                     public void onSuccess(Uri uri) {
                         String downloadUrl = uri.toString();
                         post.imageDownloadUrl = downloadUrl;
-                        database.child("posts").child(post.key).setValue(post);
+                        mDatabaseReference.child("posts").child(post.key).setValue(post);
                     }
                 });
             }

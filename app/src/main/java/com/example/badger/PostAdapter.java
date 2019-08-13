@@ -118,19 +118,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
-    @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final Post post = mDataset.get(position);
-        if (!mUid.equals(post.userId)) {
-            holder.mOpenMenuButton.setVisibility(View.GONE);
-        }
-
-        if (post.user != null) {
-            holder.mAuthorTextView.setText("By " + post.user.displayName);
-        }
-
-        holder.mPostDescriptionTextView.setText(post.description);
+    private void populateBadges(ViewHolder holder, Post post) {
         holder.mBadgesChipGroup.removeAllViews();
         if (post.badges != null) {
             for (String badge : post.badges) {
@@ -140,16 +128,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 c.setCheckable(false);
                 holder.mBadgesChipGroup.addView(c);
             }
-        }
+        };
+    }
 
-        if (post.imageLocalUri != null) {
-            holder.mImageView.setImageURI(Uri.parse(post.imageLocalUri));
-            holder.mProgressBar.setVisibility(View.GONE);
-        }
-        else {
-            loadDownloadImage(holder, post);
-        }
-
+    private void populateAndHandleLikes(ViewHolder holder, Post post) {
         String likeVerb = "Like";
         if (post.hasLiked) {
             likeVerb = "Unlike";
@@ -167,6 +149,32 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 mActivity.setLiked(post);
             }
         });
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
+        final Post post = mDataset.get(position);
+        if (!mUid.equals(post.userId)) {
+            holder.mOpenMenuButton.setVisibility(View.GONE);
+        }
+
+        if (post.user != null) {
+            holder.mAuthorTextView.setText("Posted by " + post.user.displayName);
+        }
+
+        holder.mPostDescriptionTextView.setText(post.description);
+        populateBadges(holder, post);
+
+        if (post.imageLocalUri != null) {
+            holder.mImageView.setImageURI(Uri.parse(post.imageLocalUri));
+            holder.mProgressBar.setVisibility(View.GONE);
+        }
+        else {
+            loadDownloadImage(holder, post);
+        }
+
+        populateAndHandleLikes(holder, post);
 
         holder.mOpenMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
