@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.badger.models.User;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
             // save the user info in the database to users/UID/
             // we'll use the UID as part of the path
-            com.example.badger.User user = new com.example.badger.User(fbUser.getUid(), fbUser.getDisplayName(), token);
+            User user = new User(fbUser.getUid(), fbUser.getDisplayName(), token);
             database.child("users").child(user.uid).setValue(user);
 
             Intent intent = new Intent(this, FeedActivity.class);

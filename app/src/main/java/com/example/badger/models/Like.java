@@ -1,4 +1,4 @@
-package com.example.badger;
+package com.example.badger.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
@@ -8,7 +8,7 @@ public class Like {
     public String userId;
 
     public Like() {
-        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.Like.class)
+        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.models.Like.class)
     }
 
     public Like(String postId, String userId) {

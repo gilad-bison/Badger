@@ -1,4 +1,4 @@
-package com.example.badger;
+package com.example.badger.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
@@ -9,7 +9,7 @@ public class User {
     public String token;
 
     public User() {
-        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.User.class)
+        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.models.User.class)
     }
 
     public User(String uid, String displayName, String token) {

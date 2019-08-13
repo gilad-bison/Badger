@@ -1,10 +1,9 @@
-package com.example.badger;
+package com.example.badger.models;
 
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.ArrayList;
-import java.util.function.Predicate;
 
 @IgnoreExtraProperties
 public class Post {
@@ -28,7 +27,7 @@ public class Post {
     public String userLike;
 
     public Post() {
-        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.User.class)
+        // Default constructor required for calls to DataSnapshot.getValue(com.example.badger.models.User.class)
     }
 
     public Post(String key, String userId, String imageDownloadUrl, String description, ArrayList<String> badges) {
