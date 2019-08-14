@@ -10,8 +10,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
-
 import com.example.badger.R;
 import com.example.badger.models.Post;
 import com.google.android.material.chip.Chip;
@@ -37,7 +35,6 @@ public class CreatePostActivity extends AppCompatActivity {
     private String mPostKey;
     private boolean mIsEditMode;
     private DatabaseReference mDatabaseReference;
-    private SimpleDateFormat mDateFormat;
     private FirebaseUser mFirebaseUser;
 
     @Override
@@ -133,7 +130,6 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private void createPostObjectAndUpload() {
         Post postToUpload = this.getPostFromUI();
-        // save image to database
         mProgress.setVisibility(View.GONE);
         Intent intent = new Intent();
         intent.putExtra("description", postToUpload.description);

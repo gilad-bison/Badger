@@ -193,6 +193,18 @@ public class PostViewModel extends ViewModel {
         });
     }
 
+    public void addLikeToPost(Like like, String key) {
+        mDatabaseReference.child("likes").child(key).setValue(like);
+    }
+
+    public void removeLikeFromPost(String key) {
+        mDatabaseReference.child("likes").child(key).removeValue();
+    }
+
+    public void removePost(Post post) {
+        mDatabaseReference.child("posts").child(post.key).removeValue();
+    }
+
     public void addPost (Post post) {
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference imagesRef = storageRef.child("images");

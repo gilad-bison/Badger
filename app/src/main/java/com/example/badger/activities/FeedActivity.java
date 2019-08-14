@@ -51,7 +51,7 @@ public class FeedActivity extends AppCompatActivity {
     PostAdapter mAdapter;
     PostViewModel mPostViewModel;
     List<Post> mPosts = new ArrayList<>();
-    private TextView mHelloTextView;
+    TextView mHelloTextView;
 
 
     @Override
@@ -199,7 +199,7 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void DeletePost(Post post) {
-        mDatabaseReference.child("posts").child(post.key).removeValue();
+        mPostViewModel.removePost(post);
         for (Post currPost: mPosts) {
             if (currPost.key == post.key) {
                 mPosts.remove(currPost);
@@ -259,14 +259,14 @@ public class FeedActivity extends AppCompatActivity {
             post.upsertLike(new Like(post.key, mFirebaseUser.getUid()));
             Like like = new Like(post.key, mFirebaseUser.getUid());
             String key = mDatabaseReference.child("likes").push().getKey();
-            mDatabaseReference.child("likes").child(key).setValue(like);
+            mPostViewModel.addLikeToPost(like, key);
             post.userLike = key;
         } else {
             // remove Like
             post.removeLike(new Like(post.key, mFirebaseUser.getUid()));
             post.hasLiked = false;
             if (post.userLike != null) {
-                mDatabaseReference.child("likes").child(post.userLike).removeValue();
+                mPostViewModel.removeLikeFromPost(post.userLike);
             }
         }
 
