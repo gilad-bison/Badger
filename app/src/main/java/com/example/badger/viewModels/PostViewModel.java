@@ -205,6 +205,10 @@ public class PostViewModel extends ViewModel {
         mDatabaseReference.child("posts").child(post.key).removeValue();
     }
 
+    public void updatePost(Post post) {
+        mDatabaseReference.child("posts").child(post.key).setValue(post);
+    }
+
     public void addPost (Post post) {
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference imagesRef = storageRef.child("images");
@@ -226,7 +230,7 @@ public class PostViewModel extends ViewModel {
                     public void onSuccess(Uri uri) {
                         String downloadUrl = uri.toString();
                         post.imageDownloadUrl = downloadUrl;
-                        mDatabaseReference.child("posts").child(post.key).setValue(post);
+                        updatePost(post);
                     }
                 });
             }

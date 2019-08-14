@@ -1,16 +1,22 @@
 package com.example.badger.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.room.util.StringUtil;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import com.example.badger.R;
+import com.example.badger.viewModels.PostEditViewModel;
+import com.example.badger.viewModels.PostViewModel;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.database.DatabaseReference;
@@ -20,6 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CreatePostActivity extends AppCompatActivity {
 
@@ -34,17 +41,17 @@ public class CreatePostActivity extends AppCompatActivity {
     private boolean mIsEditMode;
     private DatabaseReference mDatabaseReference;
     private FirebaseUser mFirebaseUser;
+    private PostEditViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_post);
+        mViewModel = ViewModelProviders.of(this).get(PostEditViewModel.class);
         mProgress = findViewById(R.id.progress_bar);
         Intent callerIntent = getIntent();
         mPostKey = callerIntent.getStringExtra("postKey");
         mIsEditMode = callerIntent.getBooleanExtra("editMode", false);
-
-
         mPreviewImageView = findViewById(R.id.previewImage);
         if (mIsEditMode) {
             mImageDownloadUrl = callerIntent.getStringExtra("imageDownloadUrl");
@@ -55,19 +62,16 @@ public class CreatePostActivity extends AppCompatActivity {
             mPreviewImageView.setImageURI(Uri.parse(this.mImageLocalURI));
         }
 
-
         mDescriptionEditText = findViewById(R.id.editText);
         String currentDescription = callerIntent.getStringExtra("description");
-        if (currentDescription != null) {
-            mDescriptionEditText.setText(currentDescription);
-        }
+        mViewModel.setDescriptionIfNotInitialized(currentDescription);
+        mDescriptionEditText.setText(currentDescription);
 
         mPostButton = findViewById(R.id.postButton);
         mBadgesChipGroup = findViewById(R.id.filter_chip_group);
         ArrayList<String> currentBadges = callerIntent.getStringArrayListExtra("badges");
-        if (currentBadges != null && currentBadges.size() > 0) {
-            populateBadges(currentBadges);
-        }
+        mViewModel.setBadgesIfNotInitialized(currentBadges);
+        populateBadges(currentBadges);
 
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (mFirebaseUser == null) {
@@ -75,9 +79,45 @@ public class CreatePostActivity extends AppCompatActivity {
         }
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        addListeners();
+
     }
 
-    private void populateBadges(ArrayList<String> currentBadges) {
+    private void addListeners() {
+        mDescriptionEditText.addTextChangedListener(new TextWatcher() {
+            public void onTextChanged(CharSequence s, int start, int before,
+                                      int count) {
+                if(s.length() > 0) {
+                    mViewModel.setDescription(s.toString());
+                }
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+
+            }
+
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
+            Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
+            currentChip.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mViewModel.setBadges(getBadgesFromUI());
+                }
+            });
+        }
+    }
+
+    private void populateBadges(List<String> currentBadges) {
+        if (currentBadges == null || currentBadges.size() == 0) {
+            return;
+        }
+
         for (String currBadge : currentBadges) {
             for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
                 Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
@@ -122,8 +162,8 @@ public class CreatePostActivity extends AppCompatActivity {
     private void createPostObjectAndUpload() {
         mProgress.setVisibility(View.GONE);
         Intent intent = new Intent();
-        intent.putExtra("description", getDescriptionFromUI());
-        intent.putExtra("badges", getBadgesFromUI());
+        intent.putExtra("description", mViewModel.getDescription().getValue());
+        intent.putExtra("badges", mViewModel.getBadges().getValue());
         intent.putExtra("postKey", getPostKey());
         intent.putExtra("imageDownloadUri", mImageDownloadUrl);
         intent.putExtra("imageLocalUri", mImageLocalURI);

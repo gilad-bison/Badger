@@ -215,6 +215,7 @@ public class FeedActivity extends AppCompatActivity {
             if (post.key.equals(postKey)) {
                 post.description = description;
                 post.badges = badges;
+                mPostViewModel.updatePost(post);
                 break;
             }
         }
