@@ -12,6 +12,7 @@ public class Post {
     public String userId;
     public String imageDownloadUrl;
     public String description;
+    public long creationTime;
     public ArrayList<String> badges;
 
     // these properties will not be saved to the database
@@ -42,11 +43,32 @@ public class Post {
         this.badges = badges;
     }
 
+    public Post(String key, String userId, String imageDownloadUrl, String description, ArrayList<String> badges, boolean addCreationTime) {
+        this.key = key;
+        this.userId = userId;
+        this.imageDownloadUrl = imageDownloadUrl;
+        this.description = description;
+        this.badges = badges;
+        if (addCreationTime) {
+            this.creationTime = System.currentTimeMillis();
+        }
+    }
+
     public Post(String key, String userId, String description, ArrayList<String> badges) {
         this.key = key;
         this.userId = userId;
         this.description = description;
         this.badges = badges;
+    }
+
+    public Post(String key, String userId, String description, ArrayList<String> badges, boolean addCreationTime) {
+        this.key = key;
+        this.userId = userId;
+        this.description = description;
+        this.badges = badges;
+        if (addCreationTime) {
+            this.creationTime = System.currentTimeMillis();
+        }
     }
 
     public void upsertLike(Like like) {

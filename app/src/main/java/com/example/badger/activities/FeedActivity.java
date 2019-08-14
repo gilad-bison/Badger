@@ -223,11 +223,10 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     private void createPost(String postKey, String description, ArrayList<String> badges, String imageLocalUri) {
-        Post newPost = new Post(postKey, mFirebaseUser.getUid(), description, badges);
+        Post newPost = new Post(postKey, mFirebaseUser.getUid(), description, badges, true);
         newPost.imageLocalUri = imageLocalUri;
         newPost.user = mPostViewModel.getUserFromCache(mFirebaseUser.getUid());
         mPosts.add(0, newPost);
-        //mAdapter.addPost(newPost);
         mPostViewModel.addPost(newPost);
 
         RefreshRecycler();

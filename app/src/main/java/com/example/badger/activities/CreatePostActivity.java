@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class CreatePostActivity extends AppCompatActivity {
@@ -36,6 +37,7 @@ public class CreatePostActivity extends AppCompatActivity {
     private String mPostKey;
     private boolean mIsEditMode;
     private DatabaseReference mDatabaseReference;
+    private SimpleDateFormat mDateFormat;
     private FirebaseUser mFirebaseUser;
 
     @Override
@@ -46,6 +48,7 @@ public class CreatePostActivity extends AppCompatActivity {
         Intent callerIntent = getIntent();
         mPostKey = callerIntent.getStringExtra("postKey");
         mIsEditMode = callerIntent.getBooleanExtra("editMode", false);
+
 
         mPreviewImageView = findViewById(R.id.previewImage);
         if (mIsEditMode) {

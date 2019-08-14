@@ -24,12 +24,15 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private List<Post> mDataset;
     private FeedActivity mActivity;
     private String mUid;
+    private SimpleDateFormat mDateFormat;
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -57,6 +60,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         mDataset = myDataset;
         mActivity = activity;
         mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mDateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
     }
 
     // Create new views (invoked by the layout manager)
@@ -160,7 +164,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         if (post.user != null) {
-            holder.mAuthorTextView.setText("Posted by " + post.user.displayName);
+            String postedByText = "Posted by " + post.user.displayName;
+            if (post.creationTime != 0) {
+                postedByText += " at " + mDateFormat.format(new Date(post.creationTime));
+            }
+
+            holder.mAuthorTextView.setText(postedByText);
         }
 
         holder.mPostDescriptionTextView.setText(post.description);
