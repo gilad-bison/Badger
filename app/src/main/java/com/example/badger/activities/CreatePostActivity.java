@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import com.example.badger.R;
-import com.example.badger.models.Post;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.database.DatabaseReference;
@@ -20,7 +19,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class CreatePostActivity extends AppCompatActivity {
@@ -98,8 +96,18 @@ public class CreatePostActivity extends AppCompatActivity {
         return mDatabaseReference.child("posts").push().getKey();
     }
 
-    private Post getPostFromUI() {
-        String description = mDescriptionEditText.getText().toString();
+    private void disableView() {
+        mBadgesChipGroup.setEnabled(false);
+        mDescriptionEditText.setEnabled(false);
+        mPreviewImageView.setEnabled(false);
+        mPostButton.setEnabled(false);
+    }
+
+    private String getDescriptionFromUI() {
+        return mDescriptionEditText.getText().toString();
+    }
+
+    private ArrayList<String> getBadgesFromUI() {
         ArrayList<String> badges = new ArrayList<>();
         for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
             Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
@@ -108,33 +116,15 @@ public class CreatePostActivity extends AppCompatActivity {
             }
         }
 
-        String key = getPostKey();
-        Post postFromUI = new Post(key, mFirebaseUser.getUid(), description, badges);
-
-        if (this.mImageLocalURI != null) {
-            postFromUI.imageLocalUri = this.mImageLocalURI;
-        }
-        else if (this.mImageDownloadUrl != null) {
-            postFromUI.imageDownloadUrl = this.mImageDownloadUrl;
-        }
-
-        return postFromUI;
-    }
-
-    private void disableView() {
-        mBadgesChipGroup.setEnabled(false);
-        mDescriptionEditText.setEnabled(false);
-        mPreviewImageView.setEnabled(false);
-        mPostButton.setEnabled(false);
+        return badges;
     }
 
     private void createPostObjectAndUpload() {
-        Post postToUpload = this.getPostFromUI();
         mProgress.setVisibility(View.GONE);
         Intent intent = new Intent();
-        intent.putExtra("description", postToUpload.description);
-        intent.putExtra("badges", postToUpload.badges);
-        intent.putExtra("postKey", postToUpload.key);
+        intent.putExtra("description", getDescriptionFromUI());
+        intent.putExtra("badges", getBadgesFromUI());
+        intent.putExtra("postKey", getPostKey());
         intent.putExtra("imageDownloadUri", mImageDownloadUrl);
         intent.putExtra("imageLocalUri", mImageLocalURI);
         setResult(RESULT_OK,intent);
