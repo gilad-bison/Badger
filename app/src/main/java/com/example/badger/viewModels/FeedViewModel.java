@@ -203,7 +203,7 @@ public class FeedViewModel extends ViewModel {
 
     public void removePost(Post post) {
         for (Post currPost: mPosts) {
-            if (currPost.key == post.key) {
+            if (currPost.key.equals(post.key)) {
                 mPosts.remove(currPost);
                 break;
             }

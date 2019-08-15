@@ -52,89 +52,106 @@
         android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginBottom="288dp"
         android:ems="10"
         android:hint="Post text..."
         android:inputType="textPersonName"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.494"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/previewImage"
+        app:layout_constraintBottom_toTopOf="@id/badgesFragment"
+        tools:layout_editor_absoluteY="367dp" />
 
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/filter_chip_group"
+    <!--<com.google.android.material.chip.ChipGroup-->
+        <!--android:id="@+id/filter_chip_group"-->
+        <!--android:layout_width="346dp"-->
+        <!--android:layout_height="131dp"-->
+        <!--android:layout_marginStart="8dp"-->
+        <!--android:layout_marginLeft="8dp"-->
+        <!--android:layout_marginTop="8dp"-->
+        <!--android:layout_marginEnd="8dp"-->
+        <!--android:layout_marginRight="8dp"-->
+        <!--android:layout_marginBottom="8dp"-->
+        <!--app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintHorizontal_bias="0.489"-->
+        <!--app:layout_constraintStart_toStartOf="parent"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/editText"-->
+        <!--app:layout_constraintVertical_bias="0.252">-->
+
+
+        <!--<com.google.android.material.chip.Chip-->
+            <!--android:id="@+id/chip1"-->
+            <!--style="@style/Widget.MaterialComponents.Chip.Filter"-->
+            <!--android:layout_width="135dp"-->
+            <!--android:layout_height="35dp"-->
+            <!--android:layout_marginStart="8dp"-->
+            <!--android:layout_marginLeft="8dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:layout_marginEnd="8dp"-->
+            <!--android:layout_marginRight="8dp"-->
+            <!--android:layout_marginBottom="8dp"-->
+            <!--android:textAlignment="center"-->
+            <!--android:text="Got Married" />-->
+
+        <!--<com.google.android.material.chip.Chip-->
+            <!--android:id="@+id/chip2"-->
+            <!--style="@style/Widget.MaterialComponents.Chip.Filter"-->
+            <!--android:layout_width="180dp"-->
+            <!--android:layout_height="35dp"-->
+            <!--android:layout_marginStart="8dp"-->
+            <!--android:layout_marginLeft="8dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:layout_marginEnd="8dp"-->
+            <!--android:layout_marginRight="8dp"-->
+            <!--android:layout_marginBottom="8dp"-->
+            <!--android:textAlignment="center"-->
+            <!--android:text="First Child" />-->
+
+        <!--<com.google.android.material.chip.Chip-->
+            <!--android:id="@+id/chip3"-->
+            <!--style="@style/Widget.MaterialComponents.Chip.Filter"-->
+            <!--android:layout_width="135dp"-->
+            <!--android:layout_height="35dp"-->
+            <!--android:layout_marginStart="8dp"-->
+            <!--android:layout_marginLeft="8dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:layout_marginEnd="8dp"-->
+            <!--android:layout_marginRight="8dp"-->
+            <!--android:layout_marginBottom="8dp"-->
+            <!--android:textAlignment="center"-->
+            <!--android:text="Lost Weight" />-->
+
+        <!--<com.google.android.material.chip.Chip-->
+            <!--android:id="@+id/chip4"-->
+            <!--style="@style/Widget.MaterialComponents.Chip.Filter"-->
+            <!--android:layout_width="180dp"-->
+            <!--android:layout_height="35dp"-->
+            <!--android:layout_marginStart="8dp"-->
+            <!--android:layout_marginLeft="8dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:layout_marginEnd="8dp"-->
+            <!--android:layout_marginRight="8dp"-->
+            <!--android:layout_marginBottom="8dp"-->
+            <!--android:textAlignment="center"-->
+            <!--android:text="Visited New Country" />-->
+    <!--</com.google.android.material.chip.ChipGroup>-->
+
+    <fragment
+        android:id="@+id/badgesFragment"
+        android:name="com.example.badger.fragments.BadgesPickFragment"
         android:layout_width="346dp"
         android:layout_height="131dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="28dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/postButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.489"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText"
-        app:layout_constraintVertical_bias="0.252">
-
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip1"
-            style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="135dp"
-            android:layout_height="35dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            android:textAlignment="center"
-            android:text="Got Married" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip2"
-            style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="180dp"
-            android:layout_height="35dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            android:textAlignment="center"
-            android:text="First Child" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip3"
-            style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="135dp"
-            android:layout_height="35dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            android:textAlignment="center"
-            android:text="Lost Weight" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip4"
-            style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="180dp"
-            android:layout_height="35dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            android:textAlignment="center"
-            android:text="Visited New Country" />
-    </com.google.android.material.chip.ChipGroup>
+        app:layout_constraintTop_toBottomOf="@+id/editText" />
 
     <Button
         android:id="@+id/postButton"

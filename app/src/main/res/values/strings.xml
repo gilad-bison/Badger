@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Badger</string>
     <string name="chip_text">s,d,g,a</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

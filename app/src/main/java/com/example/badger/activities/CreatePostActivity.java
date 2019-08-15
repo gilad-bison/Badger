@@ -13,10 +13,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import com.example.badger.fragments.BadgesPickFragment;
 import com.example.badger.R;
 import com.example.badger.viewModels.PostEditViewModel;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,7 +24,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class CreatePostActivity extends AppCompatActivity {
 
@@ -33,13 +32,13 @@ public class CreatePostActivity extends AppCompatActivity {
     private ProgressBar mProgress;
     private EditText mDescriptionEditText;
     private ImageView mPreviewImageView;
-    private ChipGroup mBadgesChipGroup;
     private Button mPostButton;
     private String mPostKey;
     private boolean mIsEditMode;
     private DatabaseReference mDatabaseReference;
     private FirebaseUser mFirebaseUser;
     private PostEditViewModel mViewModel;
+    private BadgesPickFragment mBadgesPickFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +65,13 @@ public class CreatePostActivity extends AppCompatActivity {
         mDescriptionEditText.setText(currentDescription);
 
         mPostButton = findViewById(R.id.postButton);
-        mBadgesChipGroup = findViewById(R.id.filter_chip_group);
         ArrayList<String> currentBadges = callerIntent.getStringArrayListExtra("badges");
-        mViewModel.setBadgesIfNotInitialized(currentBadges);
-        populateBadges(currentBadges);
+        mBadgesPickFragment = (BadgesPickFragment)
+                getSupportFragmentManager()
+                        .findFragmentById(R.id.badgesFragment);
+        Bundle args = new Bundle();
+        args.putStringArrayList("badges", currentBadges);
+        mBadgesPickFragment.setArguments(args);
 
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (mFirebaseUser == null) {
@@ -99,32 +101,8 @@ public class CreatePostActivity extends AppCompatActivity {
 
             }
         });
-
-        for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
-            Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
-            currentChip.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mViewModel.setBadges(getBadgesFromUI());
-                }
-            });
-        }
     }
 
-    private void populateBadges(List<String> currentBadges) {
-        if (currentBadges == null || currentBadges.size() == 0) {
-            return;
-        }
-
-        for (String currBadge : currentBadges) {
-            for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
-                Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
-                if (currentChip.getText().toString().equals(currBadge)) {
-                    currentChip.setChecked(true);
-                }
-            }
-        }
-    }
 
     private String getPostKey() {
         if (mIsEditMode && mPostKey != null) {
@@ -135,26 +113,10 @@ public class CreatePostActivity extends AppCompatActivity {
     }
 
     private void disableView() {
-        mBadgesChipGroup.setEnabled(false);
+        mBadgesPickFragment.disableView();
         mDescriptionEditText.setEnabled(false);
         mPreviewImageView.setEnabled(false);
         mPostButton.setEnabled(false);
-    }
-
-    private String getDescriptionFromUI() {
-        return mDescriptionEditText.getText().toString();
-    }
-
-    private ArrayList<String> getBadgesFromUI() {
-        ArrayList<String> badges = new ArrayList<>();
-        for (int i = 0; i < mBadgesChipGroup.getChildCount(); i++) {
-            Chip currentChip  = (Chip)mBadgesChipGroup.getChildAt(i);
-            if (currentChip.isChecked()) {
-                badges.add(currentChip.getText().toString());
-            }
-        }
-
-        return badges;
     }
 
     private void createPostObjectAndUpload() {
