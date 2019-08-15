@@ -6,13 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".activities.CreatePostActivity">
 
-    <!--<fragment-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:name="com.example.badger.PostEditFragment"-->
-        <!--android:id="@+id/postEditFragment"-->
-        <!--/>-->
-
     <ProgressBar
         android:id="@+id/progress_bar"
         style="?android:progressBarStyle"
@@ -42,11 +35,12 @@
         android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/editText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@android:drawable/alert_dark_frame"
-        tools:layout_editor_absoluteY="103dp" />
+        app:srcCompat="@android:drawable/alert_dark_frame" />
 
     <EditText
         android:id="@+id/editText"
@@ -54,7 +48,6 @@
         android:layout_height="76dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="200dp"
@@ -64,9 +57,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.537"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/previewImage"
-        app:layout_constraintVertical_bias="0.26" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/textView"
@@ -107,7 +98,7 @@
         <com.google.android.material.chip.Chip
             android:id="@+id/chip1"
             style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="110dp"
+            android:layout_width="135dp"
             android:layout_height="35dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
@@ -115,12 +106,13 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
+            android:textAlignment="center"
             android:text="Got Married" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip2"
             style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="120dp"
+            android:layout_width="180dp"
             android:layout_height="35dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
@@ -128,12 +120,13 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
+            android:textAlignment="center"
             android:text="First Child" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip3"
             style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="110dp"
+            android:layout_width="135dp"
             android:layout_height="35dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
@@ -141,12 +134,13 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
+            android:textAlignment="center"
             android:text="Lost Weight" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip4"
             style="@style/Widget.MaterialComponents.Chip.Filter"
-            android:layout_width="160dp"
+            android:layout_width="180dp"
             android:layout_height="35dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
@@ -154,6 +148,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
+            android:textAlignment="center"
             android:text="Visited New Country" />
     </com.google.android.material.chip.ChipGroup>
 
@@ -173,5 +168,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.918"
         app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintTop_toBottomOf="@+id/filter_chip_group" />
 </androidx.constraintlayout.widget.ConstraintLayout>
