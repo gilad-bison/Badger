@@ -32,14 +32,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class PostViewModel extends ViewModel {
+public class FeedViewModel extends ViewModel {
     private DatabaseReference mDatabaseReference;
     private MutableLiveData<List<Post>> mPostsLiveData;
     private List<Post> mPosts;
     private BadgerDatabase mBadgerDatabase;
     private FirebaseUser fbUser;
 
-    public PostViewModel() {
+    public FeedViewModel() {
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         fbUser = FirebaseAuth.getInstance().getCurrentUser();
         mPostsLiveData = new MutableLiveData<>();
@@ -202,14 +202,37 @@ public class PostViewModel extends ViewModel {
     }
 
     public void removePost(Post post) {
+        for (Post currPost: mPosts) {
+            if (currPost.key == post.key) {
+                mPosts.remove(currPost);
+                break;
+            }
+        }
+
+        mPostsLiveData.setValue(mPosts);
         mDatabaseReference.child("posts").child(post.key).removeValue();
     }
 
-    public void updatePost(Post post) {
-        mDatabaseReference.child("posts").child(post.key).setValue(post);
+    public void updatePost(String postKey, String description, ArrayList<String> badges) {
+        Post selectedPost = null;
+        for (Post post : mPosts) {
+            if (post.key.equals(postKey)) {
+                post.description = description;
+                post.badges = badges;
+                selectedPost = post;
+                break;
+            }
+        }
+
+        mPostsLiveData.setValue(mPosts);
+        if (selectedPost != null) {
+            mDatabaseReference.child("posts").child(selectedPost.key).setValue(selectedPost);
+        }
     }
 
     public void addPost (Post post) {
+        mPosts.add(0, post);
+        mPostsLiveData.setValue(mPosts);
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference imagesRef = storageRef.child("images");
         StorageReference userRef = imagesRef.child(fbUser.getUid());
@@ -230,7 +253,7 @@ public class PostViewModel extends ViewModel {
                     public void onSuccess(Uri uri) {
                         String downloadUrl = uri.toString();
                         post.imageDownloadUrl = downloadUrl;
-                        updatePost(post);
+                        mDatabaseReference.child("posts").child(post.key).setValue(post);
                     }
                 });
             }

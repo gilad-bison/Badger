@@ -25,7 +25,7 @@ public class PostEditViewModel extends ViewModel {
     }
 
     public void setDescription(String description) {
-        if (description.equals(mDescription.getValue())) {
+        if (mDescription.getValue() != null && description.equals(mDescription.getValue())) {
             return;
         }
 
@@ -33,19 +33,19 @@ public class PostEditViewModel extends ViewModel {
     }
 
     public void setDescriptionIfNotInitialized(String description) {
-        if (mDescription.getValue() != null) {
+        if (mDescription.getValue() == null) {
             setDescription(description);
         }
     }
 
     public void setBadgesIfNotInitialized(ArrayList<String> badges) {
-        if (mBadges.getValue() != null) {
+        if (mBadges.getValue() == null) {
             setBadges(badges);
         }
     }
 
     public void setBadges(ArrayList<String> badges) {
-        if (badges.equals(mBadges.getValue())) {
+        if (mBadges.getValue() != null && badges.equals(mBadges.getValue())) {
             return;
         }
 

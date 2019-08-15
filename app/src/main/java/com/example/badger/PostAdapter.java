@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.badger.activities.FeedActivity;
@@ -56,9 +57,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    public PostAdapter(List<Post> myDataset, FeedActivity activity) {
-        mDataset = myDataset;
+    public PostAdapter(LiveData<List<Post>> myDataset, FeedActivity activity) {
         mActivity = activity;
+        myDataset.observe(mActivity, dataSet -> {
+            mActivity.onPostResults();
+            mDataset = dataSet;
+            this.notifyDataSetChanged();
+        });
         mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
     }
@@ -195,6 +200,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
+        if (mDataset == null) {
+            return 0;
+        }
+
         return mDataset.size();
     }
 

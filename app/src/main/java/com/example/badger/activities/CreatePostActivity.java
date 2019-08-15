@@ -2,7 +2,6 @@ package com.example.badger.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.room.util.StringUtil;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -16,7 +15,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import com.example.badger.R;
 import com.example.badger.viewModels.PostEditViewModel;
-import com.example.badger.viewModels.PostViewModel;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.database.DatabaseReference;

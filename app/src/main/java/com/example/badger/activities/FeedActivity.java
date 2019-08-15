@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +25,7 @@ import com.example.badger.PostAdapter;
 import com.example.badger.R;
 import com.example.badger.models.Like;
 import com.example.badger.models.Post;
-import com.example.badger.viewModels.PostViewModel;
+import com.example.badger.viewModels.FeedViewModel;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -49,8 +50,7 @@ public class FeedActivity extends AppCompatActivity {
     LinearLayoutManager mLayoutManager;
     ProgressBar mProgressBar;
     PostAdapter mAdapter;
-    PostViewModel mPostViewModel;
-    List<Post> mPosts = new ArrayList<>();
+    FeedViewModel mViewModel;
     TextView mHelloTextView;
 
 
@@ -66,38 +66,30 @@ public class FeedActivity extends AppCompatActivity {
             finish();
         }
 
+        mViewModel = ViewModelProviders.of(this).get(FeedViewModel.class);
+
+        LiveData<List<Post>> adapterDataSource;
+        if (isPersonal) {
+            adapterDataSource = mViewModel.getPersonalPosts(this, mFirebaseUser.getUid());
+        }
+        else {
+            adapterDataSource = mViewModel.getPosts(this);
+        }
+
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         mRecyclerView = findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new PostAdapter(mPosts, this);
+        mAdapter = new PostAdapter(adapterDataSource, this);
         mRecyclerView.setAdapter(mAdapter);
         mProgressBar = findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
         mHelloTextView = findViewById(R.id.badgerFeedTextBox);
 
-        mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
 
-        if (isPersonal) {
-            mPostViewModel.getPersonalPosts(this, mFirebaseUser.getUid()).observe(this, posts -> {
-                handlePostsDBUpdate(posts);
-            });
-        }
-        else {
-            mPostViewModel.getPosts(this).observe(this, posts -> {
-                handlePostsDBUpdate(posts);
-            });
-        }
 
-        String userDisplayName = mPostViewModel.getUserFromCache(mFirebaseUser.getUid()).displayName;
+        String userDisplayName = mViewModel.getUserFromCache(mFirebaseUser.getUid()).displayName;
         mHelloTextView.setText("Hi " + userDisplayName + "!");
-    }
-
-    private void handlePostsDBUpdate(List<Post> posts) {
-        mPosts = posts;
-        mAdapter.addPosts(mPosts);
-        mProgressBar.setVisibility(View.GONE);
-        mAdapter.notifyDataSetChanged();
     }
 
     public void uploadEvent(View view) {
@@ -199,42 +191,25 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void DeletePost(Post post) {
-        mPostViewModel.removePost(post);
-        for (Post currPost: mPosts) {
-            if (currPost.key == post.key) {
-                mPosts.remove(currPost);
-                break;
-            }
-        }
-
+        mViewModel.removePost(post);
         RefreshRecycler();
     }
 
     private void updatePost(String postKey, String description, ArrayList<String> badges) {
-        for (Post post : mPosts) {
-            if (post.key.equals(postKey)) {
-                post.description = description;
-                post.badges = badges;
-                mPostViewModel.updatePost(post);
-                break;
-            }
-        }
-
+        mViewModel.updatePost(postKey, description, badges);
         RefreshRecycler();
     }
 
     private void createPost(String postKey, String description, ArrayList<String> badges, String imageLocalUri) {
         Post newPost = new Post(postKey, mFirebaseUser.getUid(), description, badges, true);
         newPost.imageLocalUri = imageLocalUri;
-        newPost.user = mPostViewModel.getUserFromCache(mFirebaseUser.getUid());
-        mPosts.add(0, newPost);
-        mPostViewModel.addPost(newPost);
+        newPost.user = mViewModel.getUserFromCache(mFirebaseUser.getUid());
+        mViewModel.addPost(newPost);
 
         RefreshRecycler();
     }
 
     private void RefreshRecycler() {
-        System.out.println("Refresh Recycler Called");
         mRecyclerView.setAdapter(null);
         mRecyclerView.setLayoutManager(null);
         mRecyclerView.setAdapter(mAdapter);
@@ -260,18 +235,22 @@ public class FeedActivity extends AppCompatActivity {
             post.upsertLike(new Like(post.key, mFirebaseUser.getUid()));
             Like like = new Like(post.key, mFirebaseUser.getUid());
             String key = mDatabaseReference.child("likes").push().getKey();
-            mPostViewModel.addLikeToPost(like, key);
+            mViewModel.addLikeToPost(like, key);
             post.userLike = key;
         } else {
             // remove Like
             post.removeLike(new Like(post.key, mFirebaseUser.getUid()));
             post.hasLiked = false;
             if (post.userLike != null) {
-                mPostViewModel.removeLikeFromPost(post.userLike);
+                mViewModel.removeLikeFromPost(post.userLike);
             }
         }
 
         mAdapter.notifyDataSetChanged();
+    }
+
+    public void onPostResults() {
+        mProgressBar.setVisibility(View.GONE);
     }
 }
 
